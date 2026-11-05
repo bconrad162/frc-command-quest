@@ -47,18 +47,38 @@ function gradePredictOutput(c: PredictOutputChallenge, text: unknown): GradeResu
   for (const m of c.mistakes ?? []) {
     if (sameLines(lines, m.output)) return { correct: false, feedback: m.feedback }
   }
-  let firstWrong = 0
-  while (firstWrong < Math.min(lines.length, expected.length) && lines[firstWrong] === expected[firstWrong]) firstWrong++
-  if (firstWrong >= expected.length && lines.length > expected.length) {
-    return { correct: false, feedback: `Your first ${expected.length} line(s) are right, but you printed too many lines.` }
+  return { correct: false, feedback: describeOutputDiff(lines, expected) }
+}
+
+/** Letters and digits only: used to spot answers that are right except for punctuation, case or spacing. */
+const looseKey = (line: string) => line.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+const listLines = (nums: number[]) =>
+  nums.length === 1 ? `Line ${nums[0]}` : `Lines ${nums.slice(0, -1).join(', ')} and ${nums[nums.length - 1]}`
+
+/** Line-by-line feedback that says where the answer differs without revealing the expected text. */
+function describeOutputDiff(lines: string[], expected: string[]): string {
+  const right: number[] = []
+  const close: number[] = []
+  const wrong: number[] = []
+  expected.forEach((exp, i) => {
+    const got = lines[i]
+    if (got === undefined) return
+    if (got === exp) right.push(i + 1)
+    else if (looseKey(got) === looseKey(exp)) close.push(i + 1)
+    else wrong.push(i + 1)
+  })
+  const parts: string[] = []
+  if (right.length) parts.push(`${listLines(right)} ${right.length === 1 ? 'is' : 'are'} correct.`)
+  if (close.length) {
+    parts.push(
+      `${listLines(close)} ${close.length === 1 ? 'has' : 'have'} the right values, but output must match exactly: check punctuation, capital letters and spacing against the text in the code.`,
+    )
   }
-  if (firstWrong > 0) {
-    return { correct: false, feedback: `Your first ${firstWrong} line(s) are right. Check line ${firstWrong + 1} carefully.` }
-  }
-  if (lines.length !== expected.length) {
-    return { correct: false, feedback: `Not quite. The code prints ${expected.length} line(s). Trace it one statement at a time.` }
-  }
-  return { correct: false, feedback: 'Not quite. Trace the code one statement at a time.' }
+  if (wrong.length) parts.push(`${listLines(wrong)} ${wrong.length === 1 ? 'prints' : 'print'} something different. Trace ${wrong.length === 1 ? 'that statement' : 'those statements'} step by step.`)
+  if (lines.length < expected.length) parts.push(`The code prints ${expected.length} lines; you wrote ${lines.length}.`)
+  if (lines.length > expected.length) parts.push(`The code prints only ${expected.length} line${expected.length === 1 ? '' : 's'}; you wrote ${lines.length}.`)
+  return parts.join(' ')
 }
 
 function gradeChoice(c: ChoiceChallenge, selected: unknown): GradeResult {

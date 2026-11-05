@@ -20,9 +20,22 @@ describe('predict-output grading (Java Debugging Lab)', () => {
     expect(r.correct).toBe(false)
     expect(r.feedback).toMatch(/String/)
   })
-  it('points to the first wrong line otherwise', () => {
+  it('says which lines are right and which are wrong', () => {
     const r = gradeAnswer(c, { kind: 'predict-output', text: 'Battery: 80%\nMotors: 6' })
-    expect(r.feedback).toMatch(/line 2/)
+    expect(r.feedback).toBe('Line 1 is correct. Line 2 prints something different. Trace that statement step by step.')
+  })
+  it('flags lines that are right except for punctuation, case or spacing', () => {
+    const r = gradeAnswer(c, { kind: 'predict-output', text: 'Battery 80%\nMotors: 41' })
+    expect(r.correct).toBe(false)
+    expect(r.feedback).toMatch(/^Line 2 is correct\. Line 1 has the right values, but output must match exactly: check punctuation/)
+  })
+  it('separates value mistakes from formatting mistakes', () => {
+    const r = gradeAnswer(c, { kind: 'predict-output', text: 'Battery 76%\nMotors: 51' })
+    expect(r.feedback).toBe('Lines 1 and 2 print something different. Trace those statements step by step.')
+  })
+  it('reports missing and extra lines', () => {
+    expect(gradeAnswer(c, { kind: 'predict-output', text: 'Battery: 80%' }).feedback).toMatch(/prints 2 lines; you wrote 1/)
+    expect(gradeAnswer(c, { kind: 'predict-output', text: 'Battery: 80%\nMotors: 41\nDone' }).feedback).toMatch(/prints only 2 lines; you wrote 3/)
   })
   it('is case sensitive like real program output', () => {
     expect(gradeAnswer(c, { kind: 'predict-output', text: 'battery: 80%\nmotors: 41' }).correct).toBe(false)
