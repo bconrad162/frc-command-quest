@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { CheckCircle2, Lightbulb, XCircle } from 'lucide-react'
+import { CheckCircle2, Eye, Lightbulb, XCircle } from 'lucide-react'
 import type { Challenge, GradeResult } from '../../game/types.ts'
 import { SCORING_RULES, type ScoreBreakdown } from '../../scoring/scoring.ts'
 import { Button, RichText } from '../ui.tsx'
@@ -118,5 +118,45 @@ export function HintButton({
       {revealed === 0 ? 'Show a hint' : 'Show another hint'}
       {!practice && <span className="text-ink-faint">(−{Math.round(SCORING_RULES.hintPenalty * 100)}%)</span>}
     </Button>
+  )
+}
+
+const REVEAL_WHERE: Record<Challenge['kind'], string> = {
+  'predict-output': 'The real output is:',
+  choice: 'The correct answer is marked above.',
+  'code-edit': 'The fixed line is filled in above:',
+  reorder: 'A working order is filled in above.',
+  timeline: 'The correct timeline is filled in above.',
+  autonomous: 'A working routine is loaded in the builder below. Run it to watch the robot.',
+}
+
+/** Shown after the last allowed wrong attempt: the answer, then why it is right. */
+export function AnswerRevealPanel({ challenge, practice }: { challenge: Challenge; practice: boolean }) {
+  return (
+    <div role="status" aria-live="polite" data-testid="answer-revealed" className="anim-rise rounded-lg border border-signal/50 bg-signal/5 p-4">
+      <div className="flex items-start gap-2.5">
+        <Eye className="mt-0.5 size-5 shrink-0 text-signal" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">Here is the answer</p>
+          <p className="mt-0.5 text-ink-muted">
+            {practice ? 'Study it, then try again or move on.' : 'Study it, then move on to the next mission. This mission earns no points.'} {REVEAL_WHERE[challenge.kind]}
+          </p>
+          {challenge.kind === 'predict-output' && (
+            <pre className="mt-2 overflow-x-auto rounded-md border border-steel bg-field-deep px-3 py-2 font-mono text-sm text-ink" data-testid="revealed-output">
+              {challenge.expectedOutput.join('\n')}
+            </pre>
+          )}
+          {challenge.kind === 'code-edit' && (
+            <pre className="mt-2 overflow-x-auto rounded-md border border-steel bg-field-deep px-3 py-2 font-mono text-sm text-ink">{challenge.solution}</pre>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 border-t border-steel pt-3">
+        <h3 className="mb-1 font-sans text-sm font-semibold text-signal">Why?</h3>
+        <p className="text-[15px] text-ink-muted">
+          <RichText text={challenge.why} />
+        </p>
+      </div>
+    </div>
   )
 }

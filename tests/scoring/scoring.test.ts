@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getChallenge } from '../../src/game/challenges/index.ts'
-import { applyAttempt, applyHint, applySkip, canSkip, emptyProgress, isUnlocked, type ProgressMap } from '../../src/game/progress.ts'
+import { applyAttempt, applyHint, emptyProgress, isRevealed, isUnlocked, REVEAL_AFTER_WRONG, type ProgressMap } from '../../src/game/progress.ts'
 import { aggregateScores, BASE_POINTS, computeScore, maxScore, rankEntries } from '../../src/scoring/scoring.ts'
 
 describe('difficulty scoring', () => {
@@ -117,13 +117,25 @@ describe('challenge progression', () => {
     const map: ProgressMap = { [easy1.id]: { ...emptyProgress(), completed: true } }
     expect(isUnlocked(easy2, map)).toBe(true)
   })
-  it('students can skip after 3 wrong attempts, earning nothing for it', () => {
+  it('the third wrong attempt reveals the answer, unlocks the next mission and earns nothing', () => {
+    const wrong = { correct: false, feedback: '' }
     let p = emptyProgress()
-    for (let i = 0; i < 3; i++) p = applyAttempt(easy1, p, { correct: false, feedback: '' }, { kind: 'predict-output', text: 'x' }).progress
-    expect(canSkip(p)).toBe(true)
-    p = applySkip(p)
+    for (let i = 0; i < REVEAL_AFTER_WRONG - 1; i++) p = applyAttempt(easy1, p, wrong, { kind: 'predict-output', text: 'x' }).progress
+    expect(isRevealed(p)).toBe(false)
+    expect(isUnlocked(easy2, { [easy1.id]: p })).toBe(false)
+    p = applyAttempt(easy1, p, wrong, { kind: 'predict-output', text: 'x' }).progress
+    expect(REVEAL_AFTER_WRONG).toBe(3)
+    expect(isRevealed(p)).toBe(true)
+    expect(p.points).toBe(0)
     expect(isUnlocked(easy2, { [easy1.id]: p })).toBe(true)
     const later = applyAttempt(easy1, p, { correct: true, feedback: '' }, { kind: 'predict-output', text: 'x' })
     expect(later.awarded).toBe(0)
+  })
+  it('solving on the second wrong attempt still scores', () => {
+    let p = emptyProgress()
+    for (let i = 0; i < 2; i++) p = applyAttempt(easy1, p, { correct: false, feedback: '' }, { kind: 'predict-output', text: 'x' }).progress
+    const outcome = applyAttempt(easy1, p, { correct: true, feedback: '' }, { kind: 'predict-output', text: 'x' })
+    expect(outcome.awarded).toBeGreaterThan(0)
+    expect(isRevealed(outcome.progress)).toBe(false)
   })
 })

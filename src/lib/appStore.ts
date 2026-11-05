@@ -4,7 +4,7 @@
  * lose progress. Framework-agnostic (React binds via useSyncExternalStore).
  */
 import { getChallenge } from '../game/challenges/index.ts'
-import { applyAttempt, applyHint, applySkip, emptyProgress, progressFor, type AttemptOutcome } from '../game/progress.ts'
+import { applyAttempt, applyHint, emptyProgress, progressFor, type AttemptOutcome } from '../game/progress.ts'
 import type { Answer, GradeResult } from '../game/types.ts'
 import type { AppState, ClassroomLink, OutboxItem, Settings, TeamProfile } from '../types/app.ts'
 import { readJson, uuid, writeJson } from './storage.ts'
@@ -164,15 +164,6 @@ export class AppStore {
     })
   }
 
-  skip(challengeId: string) {
-    const profile = this.activeProfile
-    if (!profile) return
-    this.updateProfile(profile.id, (p) => ({
-      ...p,
-      progress: { ...p.progress, [challengeId]: applySkip(progressFor(p.progress, challengeId)) },
-    }))
-  }
-
   recordPractice(challengeId: string, grade: GradeResult, answer: Answer) {
     const challenge = getChallenge(challengeId)
     if (!challenge) return null
@@ -181,6 +172,12 @@ export class AppStore {
     const outcome = applyAttempt(challenge, current.completed ? { ...current, completed: false } : current, grade, answer)
     this.set({ ...this.state, practice: { ...this.state.practice, [challengeId]: outcome.progress } })
     return outcome
+  }
+
+  /** Practice only: clear one mission so it can be tried again from scratch. */
+  retryPractice(challengeId: string) {
+    const { [challengeId]: _removed, ...rest } = this.state.practice
+    this.set({ ...this.state, practice: rest })
   }
 
   resetPractice() {

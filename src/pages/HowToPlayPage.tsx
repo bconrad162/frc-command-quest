@@ -1,4 +1,5 @@
 import { LinkButton } from '../components/ui.tsx'
+import { REVEAL_AFTER_WRONG } from '../game/progress.ts'
 import { BASE_POINTS, SCORING_RULES as R } from '../scoring/scoring.ts'
 
 export default function HowToPlayPage() {
@@ -49,7 +50,13 @@ export default function HowToPlayPage() {
           <tr>
             <th className="py-2 pr-4 font-medium">Retries</th>
             <td className="py-2 text-ink-muted">
-              −{R.retryPenalty * 100}% per wrong attempt, at most −{R.maxRetryPenalty * 100}%. Repeating the exact same wrong answer is not counted.
+              −{R.retryPenalty * 100}% per wrong attempt. Repeating the exact same wrong answer is not counted.
+            </td>
+          </tr>
+          <tr>
+            <th className="py-2 pr-4 font-medium">Answer shown</th>
+            <td className="py-2 text-ink-muted">
+              After {REVEAL_AFTER_WRONG} wrong attempts the game shows the answer and explains it. That mission earns no points, and the next one unlocks.
             </td>
           </tr>
           <tr>
