@@ -1,0 +1,141 @@
+@import '@fontsource/chakra-petch/latin-500.css';
+@import '@fontsource/chakra-petch/latin-700.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+@import 'tailwindcss';
+
+/* Design tokens: "robotics competition meets programming arcade". */
+@theme {
+  --color-field: #0a1428;
+  --color-field-deep: #070f1f;
+  --color-pit: #131b2b;
+  --color-pit-raised: #19233a;
+  --color-steel: #253149;
+  --color-steel-bright: #34436a;
+  --color-ink: #e6edf7;
+  --color-ink-muted: #9aabc6;
+  --color-ink-faint: #6d7f9e;
+  --color-signal: #3cc8f0;
+  --color-signal-deep: #1a8fb8;
+  --color-trophy: #f2c14e;
+  --color-go: #3ddc97;
+  --color-warn: #ff9f43;
+  --color-fault: #ff5d6c;
+  --color-tier-easy: #3cc8f0;
+  --color-tier-medium: #8b9cff;
+  --color-tier-hard: #f2c14e;
+
+  --font-display: 'Chakra Petch', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --radius-panel: 10px;
+  --radius-control: 6px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-field);
+  }
+  body {
+    @apply bg-field text-ink font-sans antialiased;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+  }
+  code,
+  kbd,
+  pre,
+  .cm-content {
+    @apply font-mono;
+    /* Students must see the exact characters they type: no -> arrow ligatures. */
+    font-variant-ligatures: none;
+    font-feature-settings: 'liga' 0, 'calt' 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-signal) 35%, transparent);
+  }
+}
+
+@layer components {
+  .panel {
+    background: var(--color-pit);
+    border: 1px solid var(--color-steel);
+    border-radius: var(--radius-panel);
+  }
+  .inline-code {
+    @apply font-mono text-[0.88em] px-1 py-px rounded bg-pit-raised text-signal;
+  }
+  .field-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--color-steel) 45%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--color-steel) 45%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}
+
+/* Motion: restrained, and fully disabled for reduced-motion users. */
+@keyframes cq-pulse-own {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-signal) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+}
+@keyframes cq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes cq-confetti {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0.6;
+  }
+}
+.anim-own {
+  animation: cq-pulse-own 600ms ease-out;
+}
+.anim-rise {
+  animation: cq-rise 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+:root[data-reduced-motion='true'] *,
+:root[data-reduced-motion='true'] *::before,
+:root[data-reduced-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
