@@ -263,7 +263,7 @@ export const mediumChallenges: Challenge[] = [
       'Each cycle, running commands get a turn newest-first, so a parent can resume in the same cycle its awaited child finishes. A `for` loop that yields at the end of each pass needs one extra turn to notice the loop is over.',
     ],
     prompt:
-      'Score Prep is scheduled in cycle 1. Fill in each command\'s status at the end of each cycle: Running (did work and yielded), Waiting (paused in an await), Done (completed this cycle), or — (not running).',
+      'Score Prep is scheduled in cycle 1. For each cycle, pick where each command **stopped** when the cycle ended: Yielded (at `coroutine.yield()`), Awaiting (stuck at an `await`), Finished (ended this cycle), or — (not running).',
     code: javaFor(timelineScenario, ['prep', 'raise', 'creep']),
     codeNote: 'All coroutine and builder calls are WPILib API; `setArmVoltage` and `drive.arcade` are illustrative.',
     scenario: timelineScenario,
@@ -276,10 +276,10 @@ export const mediumChallenges: Challenge[] = [
       creep: ['running', 'running', 'running', 'completed', 'idle'],
     },
     hints: [
-      'In cycle 1, Score Prep forks Raise Arm (which runs one loop pass) and then awaits Creep Forward (which also runs one pass).',
+      'In cycle 1, Score Prep forks Raise Arm (which runs one loop pass) and then awaits Creep Forward (which also runs one pass). Which line is Score Prep stopped on when cycle 1 ends?',
       'Raise Arm loops 2 times: it yields in cycles 1 and 2, and finishes when it resumes in cycle 3.',
     ],
-    why: 'Cycle 1: Score Prep forks Raise Arm (runs pass 1), then awaits Creep Forward (runs pass 1) and parks. Raise Arm finishes on its third turn (cycle 3) when the loop condition fails. Creep Forward finishes in cycle 4; because commands run newest-first, Score Prep resumes in that same cycle and completes.',
+    why: 'Cycle 1: Score Prep forks Raise Arm (runs pass 1), then awaits Creep Forward (runs pass 1) and stops on the `await` line, so it ends cycle 1 Awaiting even though it did work. A forked child is never awaited, so Raise Arm just yields each cycle. Raise Arm finishes on its third turn (cycle 3) when the loop condition fails. Creep Forward finishes in cycle 4; because commands run newest-first, Score Prep resumes in that same cycle and completes.',
     successMessage: 'You traced the scheduler like a debugger.',
   },
 ]

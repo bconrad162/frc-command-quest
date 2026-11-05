@@ -167,7 +167,8 @@ export function ReorderInput({
   )
 }
 
-const CELL_LABEL: Record<TimelineCell, string> = { running: 'Running', waiting: 'Waiting', completed: 'Done', idle: '—' }
+/** Named after where each command stopped at the end of the cycle, not whether it did any work. */
+const CELL_LABEL: Record<TimelineCell, string> = { running: 'Yielded', waiting: 'Awaiting', completed: 'Finished', idle: '—' }
 
 export function TimelineInput({
   challenge,
@@ -239,9 +240,21 @@ export function TimelineInput({
           ))}
         </tbody>
       </table>
-      <p className="mt-2 text-xs text-ink-faint">
-        Running: did work this cycle and yielded. Waiting: paused in <code className="inline-code">await</code>. Done: finished during this cycle. —: not running.
-      </p>
+      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs text-ink-faint" aria-label="What each status means">
+        <dt className="font-medium text-ink-muted">Yielded</dt>
+        <dd>
+          Stopped at <code className="inline-code">coroutine.yield()</code>. It picks up again next cycle.
+        </dd>
+        <dt className="font-medium text-ink-muted">Awaiting</dt>
+        <dd>
+          Stopped at an <code className="inline-code">await</code>. It is stuck until that child finishes, even if it did work earlier this cycle.
+        </dd>
+        <dt className="font-medium text-ink-muted">Finished</dt>
+        <dd>Ended during this cycle. In later cycles it is —.</dd>
+        <dt className="font-medium text-ink-muted">—</dt>
+        <dd>Not running: not started yet, or already finished.</dd>
+      </dl>
+      <p className="mt-1.5 text-xs text-ink-faint">The simulator calls these Running, Waiting and Completed.</p>
     </div>
   )
 }

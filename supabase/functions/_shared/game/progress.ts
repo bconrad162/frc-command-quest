@@ -10,7 +10,11 @@ export interface ChallengeProgress {
   wrongAttempts: number
   hintsUsed: number
   completed: boolean
-  /** Moved on without solving (after SKIP_AFTER_WRONG attempts). Earns nothing. */
+  /**
+   * The answer was revealed after REVEAL_AFTER_WRONG wrong attempts. The mission
+   * counts as passed for unlocking but earns nothing. (Stored as `skipped` so
+   * existing saved progress keeps working.)
+   */
   skipped: boolean
   points: number
   breakdown?: ScoreBreakdown
@@ -24,7 +28,7 @@ export interface ChallengeProgress {
 
 export type ProgressMap = Record<string, ChallengeProgress>
 
-export const SKIP_AFTER_WRONG = 3
+export const REVEAL_AFTER_WRONG = 3
 
 export function emptyProgress(): ChallengeProgress {
   return { attempts: 0, wrongAttempts: 0, hintsUsed: 0, completed: false, skipped: false, points: 0 }
@@ -34,7 +38,7 @@ export function progressFor(map: ProgressMap, id: string): ChallengeProgress {
   return map[id] ?? emptyProgress()
 }
 
-/** First mission in each tier is open; the next unlocks when the previous is completed or skipped. */
+/** First mission in each tier is open; the next unlocks when the previous is completed or its answer was revealed. */
 export function isUnlocked(challenge: Challenge, map: ProgressMap): boolean {
   const tier = challengesFor(challenge.difficulty)
   const index = tier.findIndex((c) => c.id === challenge.id)
@@ -43,8 +47,9 @@ export function isUnlocked(challenge: Challenge, map: ProgressMap): boolean {
   return prev.completed || prev.skipped
 }
 
-export function canSkip(p: ChallengeProgress): boolean {
-  return !p.completed && !p.skipped && p.wrongAttempts >= SKIP_AFTER_WRONG
+/** True once the answer is on screen: the student can study it and move on, but not score. */
+export function isRevealed(p: ChallengeProgress): boolean {
+  return p.skipped && !p.completed
 }
 
 export interface AttemptOutcome {
@@ -74,6 +79,7 @@ export function applyAttempt(
   if (current.completed) return { progress: next, awarded: 0, firstCompletion: false }
   if (!grade.correct) {
     next.wrongAttempts = current.wrongAttempts + 1
+    if (next.wrongAttempts >= REVEAL_AFTER_WRONG) next.skipped = true
     return { progress: next, awarded: 0, firstCompletion: false }
   }
   const breakdown = computeScore({
@@ -83,7 +89,7 @@ export function applyAttempt(
     efficiency: grade.efficiency,
     basePoints: challenge.basePoints,
   })
-  // A skipped challenge can still be solved later, but for no points.
+  // Once the answer has been revealed, a correct submission earns nothing.
   const awarded = current.skipped ? 0 : breakdown.total
   next.completed = true
   next.points = awarded
@@ -97,11 +103,6 @@ export function applyAttempt(
 export function applyHint(current: ChallengeProgress, hintIndex: number): ChallengeProgress {
   if (current.completed) return current
   return { ...current, hintsUsed: Math.max(current.hintsUsed, hintIndex + 1) }
-}
-
-export function applySkip(current: ChallengeProgress): ChallengeProgress {
-  if (!canSkip(current)) return current
-  return { ...current, skipped: true }
 }
 
 export function totalPoints(map: ProgressMap): number {

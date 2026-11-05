@@ -1,16 +1,16 @@
 import { clsx } from 'clsx'
-import { ChevronRight, Lock, Play, SkipForward, Target } from 'lucide-react'
+import { ChevronRight, Eye, Lock, Play, RotateCcw, Target } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { AutonomousBuilder, FieldView } from '../components/challenge/AutonomousBuilder.tsx'
-import { FeedbackPanel, HintButton, HintList } from '../components/challenge/Feedback.tsx'
+import { AnswerRevealPanel, FeedbackPanel, HintButton, HintList } from '../components/challenge/Feedback.tsx'
 import { ChoiceInput, LazyCode, PredictOutputInput, ReorderInput, TimelineInput } from '../components/challenge/inputs.tsx'
 import { SchedulerPanel } from '../components/scheduler/SchedulerPanel.tsx'
 import { Timeline } from '../components/scheduler/Timeline.tsx'
 import { Badge, Button, LinkButton, Panel, RichText, Spinner, TIER, TierBadge } from '../components/ui.tsx'
 import { challengesFor, getChallenge } from '../game/challenges/index.ts'
-import { gradeAnswer } from '../game/grading.ts'
-import { canSkip, isUnlocked, progressFor, SKIP_AFTER_WRONG, type AttemptOutcome } from '../game/progress.ts'
+import { gradeAnswer, referenceAnswer } from '../game/grading.ts'
+import { isRevealed, isUnlocked, progressFor, REVEAL_AFTER_WRONG, type AttemptOutcome } from '../game/progress.ts'
 import type { Answer, Challenge, GradeResult, TimelineCell } from '../game/types.ts'
 import { CONCEPT_LABELS } from '../game/types.ts'
 import { competitionPhase, useClassroom } from '../hooks/useClassroom.ts'
@@ -71,8 +71,13 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
   const { classroom, loading: classroomLoading } = useClassroom(practice ? undefined : profile?.classroom?.id)
   const now = useNow(5000)
 
+  const revealed = isRevealed(progress)
   const [answer, setAnswer] = useState<Answer>(() =>
-    progress.lastAnswer && progress.lastAnswer.kind === challenge.kind ? progress.lastAnswer : defaultAnswer(challenge),
+    revealed
+      ? referenceAnswer(challenge)
+      : progress.lastAnswer && progress.lastAnswer.kind === challenge.kind
+        ? progress.lastAnswer
+        : defaultAnswer(challenge),
   )
   const [result, setResult] = useState<{ grade: GradeResult; outcome?: AttemptOutcome | null } | null>(null)
   const [lastWrongKey, setLastWrongKey] = useState<string | null>(null)
@@ -102,7 +107,7 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
 
   const locked = Boolean(challenge.kind === 'choice' && challenge.predictFirst && progress.attempts === 0 && !result && !peeked)
   const solved = progress.completed || Boolean(result?.grade.correct)
-  const showWhy = solved || progress.skipped
+  const showWhy = solved || revealed
 
   const submit = () => {
     setNotice(null)
@@ -120,6 +125,18 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
     setResult({ grade, outcome })
     setLastWrongKey(grade.correct ? null : key)
     playSound(grade.correct ? 'correct' : 'wrong')
+    // The third wrong attempt reveals the answer: fill it in so the student can study it.
+    if (outcome && isRevealed(outcome.progress)) setAnswer(referenceAnswer(challenge))
+  }
+
+  const retryPractice = () => {
+    appStore.retryPractice(challenge.id)
+    setAnswer(defaultAnswer(challenge))
+    setResult(null)
+    setLastWrongKey(null)
+    setNotice(null)
+    setPracticeHints(0)
+    setPeeked(false)
   }
 
   const revealHint = () => {
@@ -148,7 +165,7 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
     )
   }
 
-  const inputDisabled = Boolean(blocked)
+  const inputDisabled = Boolean(blocked) || revealed
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
@@ -293,32 +310,31 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
               <p className="text-sm text-ink-muted">Build your routine below, run it to watch the robot, then submit it for scoring.</p>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button variant="primary" onClick={submit} disabled={inputDisabled} data-testid="check-answer">
-                {challenge.kind === 'autonomous' ? 'Submit routine' : challenge.kind === 'choice' && challenge.predictFirst && !solved ? 'Lock in prediction' : 'Check answer'}
-              </Button>
-              <HintButton
-                total={challenge.hints.length}
-                revealed={revealedHints}
-                onReveal={revealHint}
-                practice={practice}
-                disabled={inputDisabled || solved}
-              />
-              {!practice && canSkip(progress) && (
-                <Button size="sm" variant="ghost" onClick={() => appStore.skip(challenge.id)}>
-                  <SkipForward className="size-4" aria-hidden /> Skip for no points
+            {!revealed && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="primary" onClick={submit} disabled={inputDisabled} data-testid="check-answer">
+                  {challenge.kind === 'autonomous' ? 'Submit routine' : challenge.kind === 'choice' && challenge.predictFirst && !solved ? 'Lock in prediction' : 'Check answer'}
                 </Button>
-              )}
-            </div>
+                <HintButton
+                  total={challenge.hints.length}
+                  revealed={revealedHints}
+                  onReveal={revealHint}
+                  practice={practice}
+                  disabled={inputDisabled || solved}
+                />
+              </div>
+            )}
             <HintList hints={challenge.hints} revealed={revealedHints} />
             {notice && (
               <p role="status" className="text-sm text-warn">
                 {notice}
               </p>
             )}
-            {!practice && !solved && progress.wrongAttempts > 0 && progress.wrongAttempts < SKIP_AFTER_WRONG && (
-              <p className="text-xs text-ink-faint">
-                After {SKIP_AFTER_WRONG} wrong attempts you can skip ahead (no points). Wrong attempts so far: {progress.wrongAttempts}.
+            {!solved && !revealed && progress.wrongAttempts > 0 && (
+              <p className="flex items-center gap-1.5 text-xs text-ink-faint" data-testid="attempts-left">
+                <Eye className="size-3.5" aria-hidden />
+                Wrong attempts: {progress.wrongAttempts} of {REVEAL_AFTER_WRONG}. On wrong attempt {REVEAL_AFTER_WRONG} the answer is shown
+                {practice ? '.' : ' and this mission earns no points.'}
               </p>
             )}
             {result && (
@@ -327,22 +343,28 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
                 challenge={challenge}
                 breakdown={result.outcome?.breakdown}
                 awarded={result.outcome?.awarded}
-                showWhy={Boolean(result.grade.correct) || progress.skipped}
+                showWhy={Boolean(result.grade.correct)}
                 practice={practice}
                 alreadyCompleted={Boolean(result.outcome && !result.outcome.firstCompletion && result.grade.correct)}
               />
             )}
-            {!result && showWhy && (
+            {revealed && <AnswerRevealPanel challenge={challenge} practice={practice} />}
+            {!result && progress.completed && (
               <FeedbackPanel
-                grade={{ correct: progress.completed, feedback: progress.completed ? 'You completed this mission.' : 'You skipped this mission.' }}
+                grade={{ correct: true, feedback: 'You completed this mission.' }}
                 challenge={challenge}
                 showWhy
                 practice
                 alreadyCompleted={false}
               />
             )}
-            {(solved || progress.skipped) && (
+            {(solved || revealed) && (
               <div className="flex flex-wrap gap-2">
+                {practice && revealed && (
+                  <Button onClick={retryPractice}>
+                    <RotateCcw className="size-4" aria-hidden /> Try it again
+                  </Button>
+                )}
                 {next ? (
                   <LinkButton to={practice ? `/practice/${next.id}` : `/play/${next.id}`} variant="gold" data-testid="next-mission">
                     Next mission: {next.title} <ChevronRight className="size-4" aria-hidden />
@@ -423,7 +445,7 @@ function ScoreCard({
           )}
         </>
       ) : skipped ? (
-        <p className="text-ink-muted">Skipped. Solve it anyway to learn it; no points.</p>
+        <p className="text-ink-muted">Answer shown after {REVEAL_AFTER_WRONG} wrong attempts. No points for this mission.</p>
       ) : (
         <>
           <div className="text-ink-muted">Up to</div>
@@ -440,9 +462,8 @@ function ScoreCard({
                   +{r.efficiency.gold * 100}% gold or +{r.efficiency.silver * 100}% silver routine time
                 </li>
               )}
-              <li>
-                −{r.retryPenalty * 100}% per wrong attempt (max −{r.maxRetryPenalty * 100}%)
-              </li>
+              <li>−{r.retryPenalty * 100}% per wrong attempt</li>
+              <li>After {REVEAL_AFTER_WRONG} wrong attempts the answer is shown, for no points</li>
               <li>−{r.hintPenalty * 100}% per hint</li>
               <li>Never less than {r.minimumFraction * 100}% of base points once solved</li>
               <li>Time spent thinking never costs points</li>

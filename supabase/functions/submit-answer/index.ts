@@ -12,6 +12,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { getChallenge } from '../_shared/game/challenges/index.ts'
 import { gradeAnswer } from '../_shared/game/grading.ts'
 import { computeScore } from '../_shared/scoring/scoring.ts'
+import { REVEAL_AFTER_WRONG } from '../_shared/game/progress.ts'
 
 const MAX_BODY_BYTES = 16_000
 const RATE_LIMIT_PER_MINUTE = 15
@@ -149,7 +150,10 @@ Deno.serve(async (req) => {
     admin.from('hint_usage').select('hint_index', { count: 'exact', head: true }).eq('participant_id', participant.id).eq('challenge_id', challenge.id),
   ])
 
-  const breakdown = grade.correct
+  // The browser shows the answer after REVEAL_AFTER_WRONG wrong attempts, so a
+  // correct answer after that point is recorded but never scores or completes.
+  const revealed = (wrongBefore ?? 0) >= REVEAL_AFTER_WRONG
+  const breakdown = grade.correct && !revealed
     ? computeScore({
         difficulty: challenge.difficulty,
         wrongAttempts: wrongBefore ?? 0,

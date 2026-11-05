@@ -56,6 +56,27 @@ test('a student joins, completes an Easy mission, and unlocks the next one', asy
   await expect(page.getByTestId('total-points')).toHaveText('100')
 })
 
+test('three wrong answers reveal the answer, score nothing, and unlock the next mission', async ({ page }) => {
+  await createTeam(page)
+  await page.getByTestId('play-easy-1-battery-math').click()
+  for (const [i, text] of ['Battery 80%\nMotors: 41', 'Battery: 76%\nMotors: 41'].entries()) {
+    await page.getByTestId('output-input').fill(text)
+    await page.getByTestId('check-answer').click()
+    await expect(page.getByTestId('attempts-left')).toContainText(`Wrong attempts: ${i + 1} of 3`)
+  }
+  await expect(page.getByTestId('answer-revealed')).toHaveCount(0)
+  await page.getByTestId('output-input').fill('Battery: 80%\nMotors: 5')
+  await page.getByTestId('check-answer').click()
+  await expect(page.getByTestId('answer-revealed')).toContainText('Here is the answer')
+  await expect(page.getByTestId('revealed-output')).toHaveText('Battery: 80%\nMotors: 41')
+  await expect(page.getByTestId('output-input')).toBeDisabled()
+  await expect(page.getByTestId('check-answer')).toHaveCount(0)
+  await page.getByTestId('next-mission').click()
+  await expect(page.getByRole('heading', { name: 'Fix the Countdown' })).toBeVisible()
+  await page.goto('./#/missions')
+  await expect(page.getByTestId('total-points')).toHaveText('0')
+})
+
 test('the constrained editor fixes a loop', async ({ page }) => {
   await createTeam(page)
   await solveEasy1(page)

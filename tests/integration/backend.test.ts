@@ -149,6 +149,21 @@ describe.skipIf(!enabled)('Supabase backend', () => {
     expect(Number(easy1.hints_used)).toBe(1)
   })
 
+  it('never scores a correct answer submitted after the answer was revealed', async () => {
+    for (const code of ['i >= 0', 'i < 0', 'i > 1']) {
+      const r = await submit(alice, { classroomId, challengeId: 'easy-2-countdown-loop', idempotencyKey: randomUUID(), answer: { kind: 'code-edit', code } })
+      expect(r.body?.correct).toBe(false)
+      await pause(2100)
+    }
+    const late = await submit(alice, { classroomId, challengeId: 'easy-2-countdown-loop', idempotencyKey: randomUUID(), answer: { kind: 'code-edit', code: 'i > 0' } })
+    expect(late.status).toBe(200)
+    expect(late.body?.correct).toBe(true)
+    expect(late.body?.pointsAwarded).toBe(0)
+    const { data, error } = await admin.from('completions').select('challenge_id').eq('classroom_id', classroomId).eq('challenge_id', 'easy-2-countdown-loop')
+    expect(error).toBeNull()
+    expect(data).toEqual([])
+  }, 20_000)
+
   it('rejects answers after the competition closes, and resets cleanly', async () => {
     await teacher.rpc('close_classroom', { p_classroom: classroomId })
     const late = await submit(bob, { classroomId, challengeId: 'easy-2-countdown-loop', idempotencyKey: randomUUID(), answer: { kind: 'code-edit', code: 'i > 0' } })
