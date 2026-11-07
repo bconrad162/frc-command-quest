@@ -1,8 +1,11 @@
 import { clsx } from 'clsx'
+import { CONTROL_BY_ID } from '../../game/controller.ts'
 import { referenceAnswer } from '../../game/grading.ts'
 import type { Challenge, TimelineChallenge } from '../../game/types.ts'
 import { PALETTE_BY_ID } from '../../simulation/autonomous.ts'
 import { STATUS_STYLE } from '../scheduler/describe.ts'
+import { ControllerDiagram } from './ControllerDiagram.tsx'
+import { marksFor, WrappingCode } from './ControllerMapInput.tsx'
 import { CELL_LABEL, LazyCode } from './inputs.tsx'
 
 const codeBox = 'overflow-x-auto rounded-md border border-steel bg-field-deep px-3 py-2 font-mono text-sm text-ink'
@@ -43,6 +46,30 @@ export function AnswerKey({ challenge, wrongCells = [] }: { challenge: Challenge
     }
     case 'timeline':
       return <TimelineKey challenge={challenge} wrongCells={wrongCells} />
+    case 'controller-map':
+      return (
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-start">
+          <ol className="grid gap-1.5" data-testid="answer-controller">
+            {challenge.rows.map((row, i) => {
+              const missed = wrongCells.includes(row.id)
+              return (
+                <li
+                  key={row.id}
+                  className={clsx('rounded-md border px-2.5 py-1.5', missed ? 'border-fault' : 'border-steel')}
+                  data-testid={`answer-row-${row.id}`}
+                >
+                  <WrappingCode code={`${i + 1}. ${row.code}`} />
+                  <span className="text-sm text-go">{CONTROL_BY_ID[challenge.expected[row.id]].label}</span>
+                  {missed && <span className="ml-1.5 text-xs text-fault">(you had this wrong)</span>}
+                </li>
+              )
+            })}
+          </ol>
+          <div className="rounded-lg border border-steel bg-field-deep/60 p-2">
+            <ControllerDiagram marks={marksFor(challenge.rows, challenge.expected, (id) => (wrongCells.includes(id) ? 'fault' : 'go'))} />
+          </div>
+        </div>
+      )
     case 'autonomous': {
       const answer = referenceAnswer(challenge)
       if (answer.kind !== 'autonomous') return null

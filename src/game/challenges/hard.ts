@@ -144,6 +144,7 @@ export const hardChallenges: Challenge[] = [
     scenario: externalScenario,
     predictFirst: true,
     multiple: true,
+    answerNoun: 'command(s) that are still running',
     options: [
       { id: 'autoScore', label: 'Auto Score', feedback: 'Auto Score is canceled: its child was interrupted from outside.' },
       { id: 'armTask', label: 'Arm Task', feedback: 'Arm Task lost the Arm to Manual Arm.' },

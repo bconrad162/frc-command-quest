@@ -102,6 +102,47 @@ code**, not WPILib API. The UI labels them as such.
 - Initially `idle()` (lowest priority). Should normally be lower priority than
   ordinary commands.
 
+## Controllers and trigger bindings
+
+Verified on 2026-11-07 against allwpilib `main`:
+`commandsv3/src/main/java/org/wpilib/command3/Trigger.java`, `BindingType.java`,
+`commandsv3/src/generated/main/java/org/wpilib/command3/button/CommandXboxController.java`,
+`button/CommandGamepad.java`, `button/CommandGenericHID.java`,
+`wpilibj/src/generated/main/java/org/wpilib/driverstation/XboxController.java`,
+`wpilibj/src/main/java/org/wpilib/driverstation/Gamepad.java`; and frc-docs
+`commands-v3/triggers.rst` and `migration-guide.rst`.
+
+- `org.wpilib.command3.button.CommandXboxController(int port)`. Button triggers:
+  `a()`, `b()`, `x()`, `y()`, `leftBumper()`, `rightBumper()`, `leftStick()`,
+  `rightStick()` (stick clicks), `view()`, `menu()`, `xbox()`, `dpadUp()`,
+  `dpadDown()`, `dpadLeft()`, `dpadRight()`, `leftTrigger()`/`rightTrigger()`
+  (true above 0.5, or a given threshold). Axes: `getLeftX/Y()`, `getRightX/Y()`,
+  `getLeftTrigger()`, `getRightTrigger()`.
+- Renamed from the 2026 (v2) `CommandXboxController`: `povUp/Down/Left/Right()`
+  are `dpadUp/...()`, `start()` is `menu()`, `back()` is `view()`,
+  `getLeft/RightTriggerAxis()` are `getLeft/RightTrigger()`. A generic
+  `CommandGamepad` also exists (`faceDown()` etc.).
+- Y axes: back is positive (`Gamepad.getLeftY()` Javadoc), so forward reads
+  negative. `XboxController` applies a 0.1 deadband to each stick axis by default
+  (0.01 for triggers); `setLeftYDeadband(...)` etc. change it.
+- Bindings (`BindingType`): `onTrue` schedules on the rising edge; `onFalse` on the
+  falling edge; `whileTrue` schedules on the rising edge and cancels on the
+  falling edge (no restart); `toggleOnTrue` schedules on a rising edge and cancels
+  on the next rising edge if still running; `retryWhileTrue` also restarts the
+  command if it ends while high; `ifTrue` schedules on every high poll without
+  canceling.
+- Triggers are polled at the start of `Scheduler.run()`; the default drive
+  command pattern is `setDefaultCommand(runRepeatedly(...).withPriority(Command.LOWEST_PRIORITY).named(...))`
+  (migration-guide.rst).
+- Docs discrepancy (2026-11-07): triggers.rst's "Advanced Controller Triggers"
+  example says `getLeftY() > 0.5` means "pushed forward"; per the `Gamepad`
+  Javadoc (back is positive) that condition is *back*. The game follows the
+  Javadoc.
+
+In the simulator, a button press is a scenario event at the start of a cycle
+(`schedule` for a rising-edge binding, `cancel` for `whileTrue`'s falling edge),
+with an optional `note` shown in the event log.
+
 ## Not modeled by the simulator
 
 Triggers (other than "schedule at cycle N" / "cancel at cycle N" scenario

@@ -2,13 +2,14 @@
 
 **Master Java. Control the Scheduler. Win the Competition.**
 
-Command Quest is a browser game for training FIRST Robotics Competition programmers. Students compete in teams through 15 missions that teach Java basics and the **WPILib Commands v3** framework introduced for the 2027 FRC season: commands and mechanisms, coroutines and `yield()`, `fork()` vs `await()`, priorities, conflicts, interruption, cancellation, and parent/child commands.
+Command Quest is a browser game for training FIRST Robotics Competition programmers. Students compete in teams through 20 missions that teach Java basics and the **WPILib Commands v3** framework introduced for the 2027 FRC season: commands and mechanisms, coroutines and `yield()`, `fork()` vs `await()`, priorities, conflicts, interruption, cancellation, parent/child commands, and driving with Xbox controllers.
 
 It runs entirely in the browser (GitHub Pages). Students need no installs, no accounts, and no email. A teacher can optionally connect a free Supabase project for shared classroom leaderboards, a projector view, and server-side grading.
 
 - **Java Debugging Lab**: predict output, fix loops and conditions in a constrained code editor, reorder statements.
 - **Scheduler Showdown**: predict what the Commands v3 scheduler does, then step a visual simulator cycle by cycle (mechanism ownership, priorities, pending/running commands, timeline, event log).
 - **Autonomous Architect**: build an autonomous routine from `fork`/`await` steps and race the clock for the fastest *legal* run.
+- **Driver Controls**: map code to the buttons and sticks of an Xbox controller, predict stick values, and choose the right trigger binding (`onTrue`, `whileTrue`, `toggleOnTrue`, ...). These missions use the 2027 `CommandXboxController`, and the Reference page has a controller cheat sheet that lists the 2026 names too.
 
 Live site (after you deploy): `https://USERNAME.github.io/frc-command-quest/`
 
@@ -223,7 +224,7 @@ E2E tests cover joining, completing an Easy mission, unlocking the next mission,
 
 ## Adding challenges
 
-Challenges are typed data in `src/game/challenges/{easy,medium,hard}.ts` (types in `src/game/types.ts`). Each has an id, title, difficulty, mode, concepts, objective, briefing, prompt, hints, a "Why?" explanation, and grading data for its `kind`:
+Challenges are typed data in `src/game/challenges/{easy,medium,hard,controls}.ts` (types in `src/game/types.ts`). Each has an id, title, difficulty, mode, concepts, objective, briefing, prompt, hints, a "Why?" explanation, and grading data for its `kind`:
 
 | `kind` | Interaction | Grading |
 | --- | --- | --- |
@@ -233,13 +234,15 @@ Challenges are typed data in `src/game/challenges/{easy,medium,hard}.ts` (types 
 | `reorder` | Drag or arrow-button lines into order | `correctOrders`, or `gradeByRoutine` to accept any order that succeeds in the autonomous simulator |
 | `timeline` | Predict each command's status per cycle | Cell-by-cell against `expected` (tests verify it against the simulator) |
 | `autonomous` | Build a fork/await routine | Must complete every objective in the simulated world; efficiency tiers by time |
+| `controller-map` | Match lines of code to controls on a drawn Xbox controller (click or dropdown) | Row by row against `expected`; tips for common mix-ups (bumper vs trigger, left vs right) |
 
 Steps:
 
-1. Add the object to the right tier file (order in the array = unlock order).
+1. Add the object to the right tier file (order in `CHALLENGES` in `src/game/challenges/index.ts` = unlock order).
 2. For scheduler scenarios, build commands with `loopCommand(...)` / `scenario(...)` from `src/game/challenges/scenarios.ts`. Generate displayed Java with `commandToJava(...)` so the code always matches the simulation.
 3. Run `npm test` (structure, reference answers, and simulator agreement are all checked).
-4. Run `npm run supabase:sync`, commit the regenerated `supabase/migrations/20261105000100_challenge_catalog.sql` and `supabase/functions/_shared/`, apply the migration (`npx supabase db push`, or run the file in the SQL editor), and redeploy the function.
+4. Bump `CONTENT_VERSION` in `src/game/challenges/index.ts` and add a new file name for that version in `CATALOG_MIGRATIONS` in `scripts/sync-supabase.ts` (never edit a migration that is already applied).
+5. Run `npm run supabase:sync`, commit the new catalog migration and `supabase/functions/_shared/`, apply the migration (`npx supabase db push --remote`), and redeploy the function (`npx supabase functions deploy submit-answer`).
 
 ## Changing scoring rules
 

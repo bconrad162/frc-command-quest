@@ -3,6 +3,7 @@ import { ChevronRight, Eye, Lock, Play, RotateCcw, Target } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { AutonomousBuilder, FieldView } from '../components/challenge/AutonomousBuilder.tsx'
+import { ControllerMapInput } from '../components/challenge/ControllerMapInput.tsx'
 import { AnswerRevealPanel, FeedbackPanel, HintButton, HintList } from '../components/challenge/Feedback.tsx'
 import { ChoiceInput, LazyCode, PredictOutputInput, ReorderInput, TimelineInput } from '../components/challenge/inputs.tsx'
 import { SchedulerPanel } from '../components/scheduler/SchedulerPanel.tsx'
@@ -25,7 +26,12 @@ import { simulate } from '../simulation/scheduler.ts'
 
 const ConstrainedEditor = lazy(() => import('../components/code/ConstrainedEditor.tsx'))
 
-const MODE_LABEL = { 'java-lab': 'Java Debugging Lab', scheduler: 'Scheduler Showdown', autonomous: 'Autonomous Architect' } as const
+const MODE_LABEL = {
+  'java-lab': 'Java Debugging Lab',
+  scheduler: 'Scheduler Showdown',
+  autonomous: 'Autonomous Architect',
+  controls: 'Driver Controls',
+} as const
 
 export default function ChallengePage({ practice = false }: { practice?: boolean }) {
   const { id = '' } = useParams()
@@ -60,6 +66,8 @@ function defaultAnswer(c: Challenge): Answer {
       return { kind: 'timeline', cells: Object.fromEntries(c.rows.map((r) => [r, c.cycles.map(() => null as unknown as TimelineCell)])) }
     case 'autonomous':
       return { kind: 'autonomous', routine: c.starter }
+    case 'controller-map':
+      return { kind: 'controller-map', picks: Object.fromEntries(c.rows.map((r) => [r.id, null])) }
   }
 }
 
@@ -169,7 +177,9 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
 
   const inputDisabled = Boolean(blocked) || revealed
   // After a reload the last grade is gone; re-grade the saved attempt so wrong timeline cells stay marked.
-  const wrongCells = result?.grade.wrongCells ?? (revealed && challenge.kind === 'timeline' ? gradeAnswer(challenge, answer).wrongCells : undefined)
+  const wrongCells =
+    result?.grade.wrongCells ??
+    (revealed && (challenge.kind === 'timeline' || challenge.kind === 'controller-map') ? gradeAnswer(challenge, answer).wrongCells : undefined)
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
@@ -307,6 +317,15 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
                 cells={answer.cells}
                 onChange={(cells) => setAnswer({ kind: 'timeline', cells: cells as Record<string, TimelineCell[]> })}
                 wrongCells={wrongCells}
+                disabled={inputDisabled}
+              />
+            )}
+            {challenge.kind === 'controller-map' && answer.kind === 'controller-map' && (
+              <ControllerMapInput
+                challenge={challenge}
+                picks={answer.picks}
+                onChange={(picks) => setAnswer({ kind: 'controller-map', picks })}
+                wrongRows={wrongCells}
                 disabled={inputDisabled}
               />
             )}

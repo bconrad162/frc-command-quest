@@ -9,7 +9,7 @@ export default function HowToPlayPage() {
       <ol className="mt-6 grid gap-5">
         {[
           ['Pick a team nickname', 'No real names and no accounts. If your teacher gives you a join code, enter it to appear on the classroom leaderboard.'],
-          ['Choose a tier', 'Java Rookie, Scheduler Engineer, or Autonomous Architect. Each tier has five missions that unlock one after another.'],
+          ['Choose a tier', 'Java Rookie, Scheduler Engineer, or Autonomous Architect. Missions in each tier unlock one after another.'],
           ['Read the briefing, then experiment', 'Each mission teaches one idea. Predict, edit, reorder, or build, then check your answer.'],
           ['Use the simulator', 'Scheduler missions let you step the WPILib Commands v3 scheduler one cycle at a time and watch mechanisms change hands.'],
           ['Learn from mistakes', 'Wrong answers explain what actually happens. After you solve a mission, the "Why?" panel explains the idea.'],

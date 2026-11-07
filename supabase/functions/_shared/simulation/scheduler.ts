@@ -138,6 +138,7 @@ export class CommandScheduler {
     // Phase 3.1: poll triggers -> scenario events for this cycle.
     for (const event of this.scenario.events) {
       if (event.cycle !== this.cycleNumber) continue
+      if (event.note) this.emit('Log', { text: event.note })
       if (event.action === 'schedule' && event.command) this.scheduleExternal(event.command)
       else if (event.action === 'cancel' && event.command) this.cancel(event.command)
       else if (event.action === 'setSignal' && event.signal) this.signals.set(event.signal, event.value ?? true)

@@ -4,10 +4,11 @@
  * Supabase Edge Function for server-side grading.
  */
 import type { PaletteId, RoutineStep } from '../simulation/autonomous.ts'
+import type { ControlId } from './controller.ts'
 import type { CommandCycleStatus, CommandId, Scenario, SimulationResult } from '../simulation/types.ts'
 
 export type Difficulty = 'easy' | 'medium' | 'hard'
-export type GameMode = 'java-lab' | 'scheduler' | 'autonomous'
+export type GameMode = 'java-lab' | 'scheduler' | 'autonomous' | 'controls'
 
 export type Concept =
   | 'java-basics'
@@ -31,6 +32,9 @@ export type Concept =
   | 'cancellation'
   | 'debugging'
   | 'optimization'
+  | 'controllers'
+  | 'bindings'
+  | 'default-commands'
 
 export const CONCEPT_LABELS: Record<Concept, string> = {
   'java-basics': 'Java basics',
@@ -54,6 +58,9 @@ export const CONCEPT_LABELS: Record<Concept, string> = {
   cancellation: 'Cancellation',
   debugging: 'Debugging',
   optimization: 'Optimization',
+  controllers: 'Controllers',
+  bindings: 'Trigger bindings',
+  'default-commands': 'Default commands',
 }
 
 interface ChallengeBase {
@@ -106,6 +113,8 @@ export interface ChoiceChallenge extends ChallengeBase {
   /** One id, or several ids when `multiple` is true (exact set must match). */
   correct: string[]
   multiple?: boolean
+  /** Multi-select only: finishes "You are missing 2 ..." feedback. Defaults to "correct answer(s)". */
+  answerNoun?: string
   /** Scenario shown in the scheduler panel. */
   scenario?: Scenario
   /** Lock the simulator until a prediction has been submitted. */
@@ -177,7 +186,15 @@ export interface AutonomousChallenge extends ChallengeBase {
   requireArmDown?: boolean
 }
 
+export interface ControllerMapChallenge extends ChallengeBase {
+  kind: 'controller-map'
+  /** Lines of robot code; each one reads exactly one control. */
+  rows: { id: string; code: string; purpose: string }[]
+  expected: Record<string, ControlId>
+}
+
 export type Challenge =
+  | ControllerMapChallenge
   | PredictOutputChallenge
   | ChoiceChallenge
   | CodeEditChallenge
@@ -194,6 +211,7 @@ export type Answer =
   | { kind: 'reorder'; order: string[] }
   | { kind: 'timeline'; cells: Record<CommandId, TimelineCell[]> }
   | { kind: 'autonomous'; routine: RoutineStep[] }
+  | { kind: 'controller-map'; picks: Record<string, ControlId | null> }
 
 export type EfficiencyTier = 'gold' | 'silver' | 'bronze'
 
@@ -204,7 +222,7 @@ export interface GradeResult {
   /** Autonomous / routine details. */
   seconds?: number | null
   efficiency?: EfficiencyTier
-  /** Timeline cells that were wrong, as "row:index". */
+  /** Timeline cells ("row:index") or controller-map rows ("row") that were wrong. */
   wrongCells?: string[]
   /** Answer failed validation (malformed). */
   invalid?: boolean
