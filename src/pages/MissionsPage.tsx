@@ -9,7 +9,7 @@ import { competitionPhase, useClassroom } from '../hooks/useClassroom.ts'
 import { useActiveProfile, useNow } from '../hooks/useAppState.ts'
 import { maxScore } from '../scoring/scoring.ts'
 
-const MODE_SHORT = { 'java-lab': 'Java Lab', scheduler: 'Scheduler', autonomous: 'Autonomous' } as const
+const MODE_SHORT = { 'java-lab': 'Java Lab', scheduler: 'Scheduler', autonomous: 'Autonomous', controls: 'Controls' } as const
 
 export function formatRemaining(ms: number): string {
   if (ms <= 0) return '0:00'

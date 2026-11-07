@@ -145,4 +145,41 @@ coroutine.await(drive.followPath("ToScore"));`,
     detail: 'Setting one does not start it immediately; the scheduler queues it during the scheduling phase when the mechanism is idle. Default commands should usually have low priority.',
     docs: `${DOCS}mechanisms.html`,
   },
+  {
+    id: 'xbox-controller',
+    term: 'CommandXboxController',
+    summary: 'How robot code reads a driver\'s Xbox controller. Each button method returns a Trigger you can bind a command to; stick methods return numbers.',
+    code: `import org.wpilib.command3.button.CommandXboxController;
+
+// Port 0 is the first controller in the Driver Station.
+CommandXboxController driver = new CommandXboxController(0);
+
+driver.a().whileTrue(intake.intakeFuel());   // a button
+double forward = -driver.getLeftY();          // a stick`,
+    detail:
+      'In 2027 it lives in org.wpilib.command3.button. Several names changed from 2026: povUp() is dpadUp(), start() is menu(), back() is view(), and getLeftTriggerAxis() is getLeftTrigger(). leftTrigger() is true when the trigger is pulled past 0.5 unless you pass a threshold. A generic CommandGamepad class also exists, with position names like faceDown().',
+    docs: `${DOCS}triggers.html`,
+  },
+  {
+    id: 'stick-axes',
+    term: 'Stick axes and deadband',
+    summary: 'Sticks read from -1.0 to 1.0. Pushing a stick forward gives a negative Y value, so drive code usually flips it. Tiny readings near the center are ignored.',
+    code: `double forward = -driver.getLeftY();  // forward stick -> positive speed
+double turn = -driver.getRightX();`,
+    detail:
+      'For the Y axes, back is positive. CommandXboxController applies a 0.1 deadband to each stick by default (setLeftYDeadband and friends change it), so a stick drifting to 0.05 reads as 0.0. Triggers read 0.0 to 1.0.',
+    docs: 'https://github.wpilib.org/allwpilib/docs/beta/java/wpilib.command3/org/wpilib/command3/button/package-summary.html',
+  },
+  {
+    id: 'trigger-bindings',
+    term: 'Trigger bindings',
+    summary: 'A binding connects a button (or any true/false condition) to a command. The binding decides when the command starts and stops.',
+    code: `driver.leftTrigger().whileTrue(intake.intakeFuel()); // runs only while held
+driver.menu().onTrue(drive.zeroGyro());              // starts on press, finishes on its own
+driver.b().toggleOnTrue(shooter.spinUp());           // press to start, press again to stop`,
+    detail:
+      'onTrue schedules on the rising edge (pressed). onFalse schedules on the falling edge (released). whileTrue schedules on the rising edge and cancels on the falling edge. toggleOnTrue schedules on one rising edge and cancels on the next. retryWhileTrue is like whileTrue but restarts the command if it ends while held. The docs recommend whileTrue for most operator controls.',
+    simplified: 'Button presses are modeled as scenario events that schedule or cancel a command at the start of a cycle.',
+    docs: `${DOCS}triggers.html`,
+  },
 ]

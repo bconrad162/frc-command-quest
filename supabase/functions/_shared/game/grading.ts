@@ -4,12 +4,14 @@
  * every competition submission server-side. Answers are treated as untrusted input.
  */
 import { evaluateRoutine, MAX_ROUTINE_STEPS, validateRoutineShape, type RoutineStep } from '../simulation/autonomous.ts'
+import { controlMixUpTip, isControlId, type ControlId } from './controller.ts'
 import type {
   Answer,
   AutonomousChallenge,
   Challenge,
   ChoiceChallenge,
   CodeEditChallenge,
+  ControllerMapChallenge,
   EfficiencyTier,
   GradeResult,
   PredictOutputChallenge,
@@ -95,7 +97,7 @@ function gradeChoice(c: ChoiceChallenge, selected: unknown): GradeResult {
   const missing = correct.filter((p) => !picked.includes(p))
   const firstExtra = extra.length ? c.options.find((o) => o.id === extra[0]) : undefined
   if (firstExtra) return { correct: false, feedback: `${firstExtra.label}: ${firstExtra.feedback}` }
-  return { correct: false, feedback: `You are missing ${missing.length} command(s) that are still running.` }
+  return { correct: false, feedback: `You are missing ${missing.length} ${c.answerNoun ?? 'correct answer(s)'}.` }
 }
 
 function gradeCodeEdit(c: CodeEditChallenge, code: unknown): GradeResult {
@@ -158,6 +160,24 @@ function gradeTimeline(c: TimelineChallenge, cells: unknown): GradeResult {
   }
 }
 
+function gradeControllerMap(c: ControllerMapChallenge, picks: unknown): GradeResult {
+  if (typeof picks !== 'object' || picks === null || Array.isArray(picks)) return invalid()
+  const given = picks as Record<string, unknown>
+  if (Object.keys(given).some((k) => !c.rows.some((r) => r.id === k))) return invalid()
+  if (c.rows.some((r) => given[r.id] === null || given[r.id] === undefined || given[r.id] === '')) {
+    return invalid('Pick a control for every line first.')
+  }
+  if (!c.rows.every((r) => isControlId(given[r.id]))) return invalid()
+  const wrong = c.rows.filter((r) => given[r.id] !== c.expected[r.id])
+  if (wrong.length === 0) return { correct: true, feedback: c.successMessage, wrongCells: [] }
+  const tip = wrong.map((r) => controlMixUpTip(given[r.id] as ControlId, c.expected[r.id])).find(Boolean)
+  return {
+    correct: false,
+    feedback: `${wrong.length} of ${c.rows.length} lines point at the wrong control (highlighted).${tip ? ` Tip: ${tip}` : ' Read the method name in each line: it names the control.'}`,
+    wrongCells: wrong.map((r) => r.id),
+  }
+}
+
 export function efficiencyTier(c: AutonomousChallenge, seconds: number): EfficiencyTier {
   if (seconds <= c.goldSeconds + 1e-9) return 'gold'
   if (seconds <= c.silverSeconds + 1e-9) return 'silver'
@@ -197,6 +217,8 @@ export function gradeAnswer(challenge: Challenge, answer: Answer | unknown): Gra
       return gradeTimeline(challenge, a.cells)
     case 'autonomous':
       return gradeAutonomous(challenge, a.routine)
+    case 'controller-map':
+      return gradeControllerMap(challenge, a.picks)
   }
 }
 
@@ -213,6 +235,8 @@ export function referenceAnswer(challenge: Challenge): Answer {
       return { kind: 'reorder', order: challenge.correctOrders[0] }
     case 'timeline':
       return { kind: 'timeline', cells: challenge.expected }
+    case 'controller-map':
+      return { kind: 'controller-map', picks: { ...challenge.expected } }
     case 'autonomous':
       return {
         kind: 'autonomous',

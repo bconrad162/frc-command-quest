@@ -1,7 +1,9 @@
 import { ExternalLink, FlaskConical, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { ControllerDiagram } from '../components/challenge/ControllerDiagram.tsx'
 import { LazyCode } from '../components/challenge/inputs.tsx'
 import { LinkButton } from '../components/ui.tsx'
+import { CONTROLS } from '../game/controller.ts'
 import { REFERENCE } from '../game/reference.ts'
 
 export default function ReferencePage() {
@@ -61,6 +63,7 @@ export default function ReferencePage() {
           </div>
         ))}
       </dl>
+      <ControllerCheatSheet />
       <section className="mt-10 rounded-lg border border-steel px-5 py-4 text-sm text-ink-muted">
         <h2 className="text-lg text-ink">About the code in this game</h2>
         <p className="mt-2">
@@ -71,5 +74,50 @@ export default function ReferencePage() {
         </p>
       </section>
     </div>
+  )
+}
+
+function ControllerCheatSheet() {
+  return (
+    <section className="panel mt-10 px-5 py-4" id="controller" aria-labelledby="controller-heading">
+      <h2 id="controller-heading" className="font-display text-xl font-bold">
+        Xbox controller cheat sheet
+      </h2>
+      <p className="mt-1 text-[15px] text-ink-muted">
+        Every control and the WPILib 2027 <code className="inline-code">CommandXboxController</code> method that reads it. The last column is the
+        2026 name, for reading older team code.
+      </p>
+      <div className="mx-auto mt-3 max-w-md rounded-lg border border-steel bg-field-deep/60 p-2">
+        <ControllerDiagram />
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="text-xs text-ink-faint">
+            <tr>
+              <th scope="col" className="py-1.5 pr-4 font-normal">
+                Control
+              </th>
+              <th scope="col" className="py-1.5 pr-4 font-normal">
+                2027 method
+              </th>
+              <th scope="col" className="py-1.5 font-normal">
+                2026 name
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {CONTROLS.map((c) => (
+              <tr key={c.id} className="border-t border-steel/60">
+                <th scope="row" className="py-1.5 pr-4 font-medium">
+                  {c.label}
+                </th>
+                <td className="py-1.5 pr-4 font-mono text-[13px] text-signal">{c.methods.join(', ')}</td>
+                <td className="py-1.5 font-mono text-[13px] text-ink-muted">{c.v2 ?? 'same'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   )
 }

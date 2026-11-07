@@ -164,6 +164,16 @@ describe.skipIf(!enabled)('Supabase backend', () => {
     expect(data).toEqual([])
   }, 20_000)
 
+  it('grades the controller-map missions on the server', async () => {
+    const picks = { forward: 'leftStick', turn: 'rightStick', intake: 'leftTrigger', ferry: 'rightBumper', extend: 'y', climb: 'dpadUp', zero: 'menu' }
+    const wrong = await submit(bob, { classroomId, challengeId: 'easy-6-controller-map', idempotencyKey: randomUUID(), answer: { kind: 'controller-map', picks: { ...picks, intake: 'leftBumper' } } })
+    expect(wrong.body?.correct).toBe(false)
+    await pause(2100)
+    const right = await submit(bob, { classroomId, challengeId: 'easy-6-controller-map', idempotencyKey: randomUUID(), answer: { kind: 'controller-map', picks } })
+    expect(right.body?.correct).toBe(true)
+    expect(right.body?.pointsAwarded).toBe(100) // 100 base + 10 no hint - 10 one retry
+  }, 20_000)
+
   it('rejects answers after the competition closes, and resets cleanly', async () => {
     await teacher.rpc('close_classroom', { p_classroom: classroomId })
     const late = await submit(bob, { classroomId, challengeId: 'easy-2-countdown-loop', idempotencyKey: randomUUID(), answer: { kind: 'code-edit', code: 'i > 0' } })

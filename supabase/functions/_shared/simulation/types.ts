@@ -87,6 +87,8 @@ export interface ScenarioEvent {
   command?: CommandId
   signal?: string
   value?: boolean
+  /** Shown in the event log before the action, e.g. "Driver pressed RT (whileTrue)". */
+  note?: string
 }
 
 export interface Scenario {

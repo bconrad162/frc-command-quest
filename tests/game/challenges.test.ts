@@ -21,9 +21,9 @@ describe('challenge catalog', () => {
     for (const id of ids) expect(id).toMatch(/^[a-z0-9-]+$/)
   })
 
-  it('covers all three game modes', () => {
+  it('covers all four game modes', () => {
     const modes = new Set(CHALLENGES.map((c) => c.mode))
-    expect(modes).toEqual(new Set(['java-lab', 'scheduler', 'autonomous']))
+    expect(modes).toEqual(new Set(['java-lab', 'scheduler', 'autonomous', 'controls']))
   })
 
   for (const c of CHALLENGES) {

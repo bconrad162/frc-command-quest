@@ -15,7 +15,16 @@ import { BASE_POINTS } from '../src/scoring/scoring.ts'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export const SHARED_DIRS = ['game', 'simulation', 'scoring']
 export const SHARED_TARGET = join(root, 'supabase/functions/_shared')
-export const CATALOG_MIGRATION = join(root, 'supabase/migrations/20261105000100_challenge_catalog.sql')
+/**
+ * The catalog migration for the current CONTENT_VERSION. Applied migrations are
+ * never edited: when you bump CONTENT_VERSION, add a new entry here (with a later
+ * timestamp) so `supabase db push` applies the updated catalog.
+ */
+const CATALOG_MIGRATIONS: Record<number, string> = {
+  1: '20261105000100_challenge_catalog.sql',
+  2: '20261107000000_challenge_catalog_v2.sql',
+}
+export const CATALOG_MIGRATION = join(root, 'supabase/migrations', CATALOG_MIGRATIONS[CONTENT_VERSION])
 
 const sqlString = (s: string) => `'${s.replace(/'/g, "''")}'`
 

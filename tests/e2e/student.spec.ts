@@ -94,6 +94,23 @@ test('a revealed timeline shows the answer as a grid next to your own', async ({
   await expect(page.getByTestId('cell-prep-0')).toBeDisabled()
 })
 
+test('map the controller: click the drawing or use the dropdowns', async ({ page }) => {
+  await page.goto('./#/practice/easy-6-controller-map')
+  // Line 1 is selected first; clicking controls assigns them and moves to the next line.
+  await page.locator('[data-control="leftStick"]').click()
+  await page.locator('[data-control="rightStick"]').click()
+  await expect(page.getByTestId('map-select-forward')).toHaveValue('leftStick')
+  await expect(page.getByTestId('map-select-turn')).toHaveValue('rightStick')
+  const picks: Record<string, string> = { intake: 'leftBumper', ferry: 'rightBumper', extend: 'y', climb: 'dpadUp', zero: 'menu' }
+  for (const [row, control] of Object.entries(picks)) await page.getByTestId(`map-select-${row}`).selectOption(control)
+  await page.getByTestId('check-answer').click()
+  await expect(page.getByTestId('feedback')).toContainText('1 of 7 lines')
+  await expect(page.getByTestId('feedback')).toContainText('Bumpers are the buttons on the top edge')
+  await page.getByTestId('map-select-intake').selectOption('leftTrigger')
+  await page.getByTestId('check-answer').click()
+  await expect(page.getByTestId('feedback')).toContainText('Correct!')
+})
+
 test('the constrained editor fixes a loop', async ({ page }) => {
   await createTeam(page)
   await solveEasy1(page)

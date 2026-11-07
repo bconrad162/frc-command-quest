@@ -1,16 +1,16 @@
-import { Bot, Code2, Cpu, Medal } from 'lucide-react'
+import { Bot, Code2, Cpu, Gamepad2, Medal } from 'lucide-react'
 import { HeroDemo } from '../components/HeroDemo.tsx'
 import { LinkButton, TIER } from '../components/ui.tsx'
-import { challengesFor, DIFFICULTIES } from '../game/challenges/index.ts'
+import { CHALLENGES, challengesFor, DIFFICULTIES } from '../game/challenges/index.ts'
 import type { Difficulty } from '../game/types.ts'
 import { useActiveProfile } from '../hooks/useAppState.ts'
 import { isBackendConfigured } from '../lib/supabase.ts'
 import { BASE_POINTS } from '../scoring/scoring.ts'
 
 const TIER_TOPICS: Record<Difficulty, string> = {
-  easy: 'Java basics, loops and conditions, what a command is, execution order, your first coroutine yield.',
-  medium: 'Mechanism requirements, conflicts and priorities, fork versus await, scheduler cycles.',
-  hard: 'Parent and child commands, interruption and cancellation, debugging and optimizing autonomous routines.',
+  easy: 'Java basics, loops and conditions, what a command is, execution order, your first coroutine yield, and the Xbox controller.',
+  medium: 'Mechanism requirements, conflicts and priorities, fork versus await, scheduler cycles, button bindings.',
+  hard: 'Parent and child commands, interruption and cancellation, autonomous routines, default drive commands.',
 }
 
 const MODES = [
@@ -28,6 +28,11 @@ const MODES = [
     icon: Bot,
     name: 'Autonomous Architect',
     text: 'Build an autonomous routine from fork and await steps, then race the clock for the fastest legal run.',
+  },
+  {
+    icon: Gamepad2,
+    name: 'Driver Controls',
+    text: 'Map code to the buttons and sticks of an Xbox controller and pick the binding that makes the robot do what drivers expect.',
   },
 ]
 
@@ -77,8 +82,8 @@ export default function WelcomePage() {
 
       <section className="border-y border-steel bg-pit/50">
         <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
-          <h2 className="text-2xl font-bold">Three tiers, fifteen missions</h2>
-          <p className="mt-1 text-ink-muted">Pick the tier that fits. Each one has five missions that unlock in order.</p>
+          <h2 className="text-2xl font-bold">Three tiers, {CHALLENGES.length} missions</h2>
+          <p className="mt-1 text-ink-muted">Pick the tier that fits. Missions in a tier unlock in order.</p>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {DIFFICULTIES.map((d) => (
               <div key={d} className="border-l-4 bg-pit px-5 py-4" style={{ borderColor: TIER[d].color }}>
@@ -97,8 +102,8 @@ export default function WelcomePage() {
       </section>
 
       <section className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6">
-        <h2 className="text-2xl font-bold">Three ways to play</h2>
-        <div className="mt-6 grid gap-8 md:grid-cols-3">
+        <h2 className="text-2xl font-bold">Four ways to play</h2>
+        <div className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {MODES.map(({ icon: Icon, name, text }) => (
             <div key={name}>
               <Icon className="size-6 text-signal" aria-hidden />
