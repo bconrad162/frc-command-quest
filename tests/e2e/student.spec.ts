@@ -77,6 +77,23 @@ test('three wrong answers reveal the answer, score nothing, and unlock the next 
   await expect(page.getByTestId('total-points')).toHaveText('0')
 })
 
+test('a revealed timeline shows the answer as a grid next to your own', async ({ page }) => {
+  await page.goto('./#/practice/medium-5-cycle-timeline')
+  for (const row of ['prep', 'raise', 'creep']) for (let i = 0; i < 5; i++) await page.getByTestId(`cell-${row}-${i}`).selectOption('running')
+  for (const value of ['running', 'waiting', 'idle']) {
+    await page.getByTestId('cell-prep-4').selectOption(value)
+    await page.getByTestId('check-answer').click()
+  }
+  const key = page.getByTestId('answer-timeline')
+  await expect(key).toBeVisible()
+  await expect(page.getByTestId('answer-prep-0')).toContainText('Awaiting')
+  await expect(page.getByTestId('answer-raise-2')).toContainText('Finished')
+  await expect(page.getByTestId('answer-prep-0')).toContainText('you had this wrong')
+  // The student's own grid keeps their attempt for comparison.
+  await expect(page.getByTestId('cell-prep-0')).toHaveValue('running')
+  await expect(page.getByTestId('cell-prep-0')).toBeDisabled()
+})
+
 test('the constrained editor fixes a loop', async ({ page }) => {
   await createTeam(page)
   await solveEasy1(page)

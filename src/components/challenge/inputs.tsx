@@ -168,7 +168,7 @@ export function ReorderInput({
 }
 
 /** Named after where each command stopped at the end of the cycle, not whether it did any work. */
-const CELL_LABEL: Record<TimelineCell, string> = { running: 'Yielded', waiting: 'Awaiting', completed: 'Finished', idle: '—' }
+export const CELL_LABEL: Record<TimelineCell, string> = { running: 'Yielded', waiting: 'Awaiting', completed: 'Finished', idle: '—' }
 
 export function TimelineInput({
   challenge,
