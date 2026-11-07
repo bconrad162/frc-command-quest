@@ -73,7 +73,9 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
 
   const revealed = isRevealed(progress)
   const [answer, setAnswer] = useState<Answer>(() =>
-    revealed
+    // Autonomous loads the working routine so it can be run; other kinds keep the
+    // student's last attempt so it can be compared with the answer key.
+    revealed && challenge.kind === 'autonomous'
       ? referenceAnswer(challenge)
       : progress.lastAnswer && progress.lastAnswer.kind === challenge.kind
         ? progress.lastAnswer
@@ -125,8 +127,8 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
     setResult({ grade, outcome })
     setLastWrongKey(grade.correct ? null : key)
     playSound(grade.correct ? 'correct' : 'wrong')
-    // The third wrong attempt reveals the answer: fill it in so the student can study it.
-    if (outcome && isRevealed(outcome.progress)) setAnswer(referenceAnswer(challenge))
+    // The third wrong attempt reveals the answer. Autonomous loads the working routine into the builder.
+    if (outcome && isRevealed(outcome.progress) && challenge.kind === 'autonomous') setAnswer(referenceAnswer(challenge))
   }
 
   const retryPractice = () => {
@@ -166,6 +168,8 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
   }
 
   const inputDisabled = Boolean(blocked) || revealed
+  // After a reload the last grade is gone; re-grade the saved attempt so wrong timeline cells stay marked.
+  const wrongCells = result?.grade.wrongCells ?? (revealed && challenge.kind === 'timeline' ? gradeAnswer(challenge, answer).wrongCells : undefined)
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
@@ -302,7 +306,7 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
                 challenge={challenge}
                 cells={answer.cells}
                 onChange={(cells) => setAnswer({ kind: 'timeline', cells: cells as Record<string, TimelineCell[]> })}
-                wrongCells={result?.grade.wrongCells}
+                wrongCells={wrongCells}
                 disabled={inputDisabled}
               />
             )}
@@ -348,7 +352,7 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
                 alreadyCompleted={Boolean(result.outcome && !result.outcome.firstCompletion && result.grade.correct)}
               />
             )}
-            {revealed && <AnswerRevealPanel challenge={challenge} practice={practice} />}
+            {revealed && <AnswerRevealPanel challenge={challenge} practice={practice} wrongCells={wrongCells} />}
             {!result && progress.completed && (
               <FeedbackPanel
                 grade={{ correct: true, feedback: 'You completed this mission.' }}
