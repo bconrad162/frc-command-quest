@@ -15,6 +15,7 @@ const ReferencePage = lazyPage(() => import('./pages/ReferencePage.tsx'))
 const LabPage = lazyPage(() => import('./pages/LabPage.tsx'))
 const TeacherPage = lazyPage(() => import('./pages/TeacherPage.tsx'))
 const PresentPage = lazyPage(() => import('./pages/PresentPage.tsx'))
+const RobotLabPage = lazyPage(() => import('./pages/RobotLabPage.tsx'))
 
 function Loading() {
   return (
@@ -86,6 +87,7 @@ const router = createHashRouter([
       { path: '/leaderboard', element: <Lazy><LeaderboardPage /></Lazy> },
       { path: '/reference', element: <Lazy><ReferencePage /></Lazy> },
       { path: '/lab', element: <Lazy><LabPage /></Lazy> },
+      { path: '/robot-lab', element: <Lazy><RobotLabPage /></Lazy> },
       { path: '/teacher', element: <Lazy><TeacherPage /></Lazy> },
       { path: '*', element: <NotFound /> },
     ],

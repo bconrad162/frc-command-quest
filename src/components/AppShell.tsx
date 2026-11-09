@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { BookOpen, CircleHelp, CloudAlert, CloudCheck, CloudOff, LoaderCircle, Medal, Swords, Volume2, VolumeX } from 'lucide-react'
+import { BookOpen, Bot, CircleHelp, CloudAlert, CloudCheck, CloudOff, LoaderCircle, Medal, Swords, Volume2, VolumeX } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { totalPoints } from '../game/progress.ts'
@@ -10,6 +10,7 @@ import { isBackendConfigured } from '../lib/supabase.ts'
 
 const NAV = [
   { to: '/missions', label: 'Missions', icon: Swords },
+  { to: '/robot-lab', label: 'Robot Lab', icon: Bot },
   { to: '/leaderboard', label: 'Leaderboard', icon: Medal },
   { to: '/reference', label: 'Reference', icon: BookOpen },
   { to: '/how-to-play', label: 'How to play', icon: CircleHelp },

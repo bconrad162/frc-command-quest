@@ -73,6 +73,32 @@ export default function ReferencePage() {
           <code className="inline-code">arm.raise()</code> are example team code, labeled in each mission.
         </p>
       </section>
+      <section className="mt-6 rounded-lg border border-steel px-5 py-4 text-sm text-ink-muted" id="credits" aria-labelledby="credits-heading">
+        <h2 id="credits-heading" className="text-lg text-ink">
+          Credits
+        </h2>
+        <ul className="mt-2 list-disc space-y-1.5 pl-5">
+          <li>
+            The Robot Lab's 3D field is based on the 2026 REBUILT field model from{' '}
+            <a className="text-signal hover:underline" href="https://github.com/Mechanical-Advantage/AdvantageScopeAssets">
+              AdvantageScope Assets
+            </a>
+            , Copyright (c) 2021-2026 Littleton Robotics, used under the BSD 3-clause license (
+            <a className="text-signal hover:underline" href={`${import.meta.env.BASE_URL}models/LICENSE-AdvantageScopeAssets.txt`}>
+              license text
+            </a>
+            ). Command Quest is not affiliated with or endorsed by Littleton Robotics, FRC 6328 or AdvantageScope.
+          </li>
+          <li>The field design is FIRST's 2026 REBUILT playing field.</li>
+          <li>
+            Auto #7's paths come from team 5829's 2026 robot code (
+            <a className="text-signal hover:underline" href="https://github.com/awtybots/2026Rebuilt">
+              awtybots/2026Rebuilt
+            </a>
+            ).
+          </li>
+        </ul>
+      </section>
     </div>
   )
 }
