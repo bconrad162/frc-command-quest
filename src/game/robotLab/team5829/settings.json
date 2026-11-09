@@ -1,0 +1,41 @@
+{
+  "robotWidth": 0.87,
+  "robotLength": 0.87,
+  "holonomicMode": true,
+  "pathFolders": [
+    "Worlds Paths",
+    "Worlds Paths 2"
+  ],
+  "autoFolders": [
+    "Delayed Autos",
+    "Worlds Autos"
+  ],
+  "defaultMaxVel": 3.5,
+  "defaultMaxAccel": 3.5,
+  "defaultMaxAngVel": 540.0,
+  "defaultMaxAngAccel": 720.0,
+  "defaultNominalVoltage": 12.0,
+  "robotMass": 55.791,
+  "robotMOI": 5.66,
+  "robotTrackwidth": 0.6223,
+  "driveWheelRadius": 0.0381,
+  "driveGearing": 5.08,
+  "maxDriveSpeed": 5.0,
+  "driveMotorType": "vortex",
+  "driveCurrentLimit": 50.0,
+  "wheelCOF": 1.1,
+  "flModuleX": 0.2937,
+  "flModuleY": 0.2937,
+  "frModuleX": 0.2937,
+  "frModuleY": -0.294,
+  "blModuleX": -0.294,
+  "blModuleY": 0.2937,
+  "brModuleX": -0.2937,
+  "brModuleY": -0.2937,
+  "bumperOffsetX": 0.0,
+  "bumperOffsetY": 0.0,
+  "robotFeatures": [
+    "{\"name\":\"Intake Extention\",\"type\":\"rounded_rect\",\"data\":{\"center\":{\"x\":0.52,\"y\":0.0},\"size\":{\"width\":0.87,\"length\":0.187},\"borderRadius\":0.05,\"strokeWidth\":0.02,\"filled\":true}}",
+    "{\"name\":\"Climber\",\"type\":\"rounded_rect\",\"data\":{\"center\":{\"x\":-0.1,\"y\":0.36},\"size\":{\"width\":0.15,\"length\":0.21},\"borderRadius\":0.05,\"strokeWidth\":0.02,\"filled\":true}}"
+  ]
+}

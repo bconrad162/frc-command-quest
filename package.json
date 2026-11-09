@@ -15,7 +15,8 @@
     "supabase:sync": "node scripts/sync-supabase.ts",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build",
     "test:backend": "node scripts/test-backend.ts",
-    "test:e2e:classroom": "node scripts/test-backend.ts classroom"
+    "test:e2e:classroom": "node scripts/test-backend.ts classroom",
+    "assets:field": "node scripts/build-field-asset.ts"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
@@ -33,9 +34,13 @@
     "lucide-react": "^1.69.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.5"
+    "react-router-dom": "^7.18.5",
+    "three": "^0.170.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/vite": "^4.3.4",
     "@testing-library/jest-dom": "^7.0.1",
@@ -44,8 +49,10 @@
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^6.1.2",
     "jsdom": "^31.0.0",
+    "meshoptimizer": "^1.3.0",
     "oxlint": "^1.90.0",
     "tailwindcss": "^4.3.4",
     "typescript": "~7.0.2",

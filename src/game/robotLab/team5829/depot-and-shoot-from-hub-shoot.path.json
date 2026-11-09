@@ -1,0 +1,152 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 1.8912410841654772,
+        "y": 4.028530670470756
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 1.7628518153141703,
+        "y": 4.7740483928511726
+      },
+      "isLocked": false,
+      "linkedName": "hub shoot"
+    },
+    {
+      "anchor": {
+        "x": 1.8233059172453707,
+        "y": 4.943902705439815
+      },
+      "prevControl": {
+        "x": 1.950781077331715,
+        "y": 4.728844379488549
+      },
+      "nextControl": {
+        "x": 1.6958307571590263,
+        "y": 5.1589610313910805
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.7734061776620376,
+        "y": 5.040743851273148
+      },
+      "prevControl": {
+        "x": 0.9199816997808895,
+        "y": 4.83822072588845
+      },
+      "nextControl": {
+        "x": 0.6268306555431855,
+        "y": 5.2432669766578455
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 0.7192186162592116,
+        "y": 6.169103754428146
+      },
+      "prevControl": {
+        "x": 0.8137916235226247,
+        "y": 5.713591504876052
+      },
+      "nextControl": {
+        "x": 0.6683976407814807,
+        "y": 6.413883713680312
+      },
+      "isLocked": false,
+      "linkedName": "Depot"
+    },
+    {
+      "anchor": {
+        "x": 2.0319474103009263,
+        "y": 5.6290734953703705
+      },
+      "prevControl": {
+        "x": 2.2529008226558997,
+        "y": 5.494193812406634
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "Depot Shoot Pos"
+    }
+  ],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1,
+      "rotationDegrees": -179.9908667727374
+    },
+    {
+      "waypointRelativePos": 2.0,
+      "rotationDegrees": 129.81081315807967
+    },
+    {
+      "waypointRelativePos": 3.0,
+      "rotationDegrees": 137.09723480281573
+    }
+  ],
+  "constraintZones": [
+    {
+      "name": "Slow for intake",
+      "minWaypointRelativePos": 0.9962105481727576,
+      "maxWaypointRelativePos": 3.33809177740864,
+      "constraints": {
+        "maxVelocity": 1.0,
+        "maxAcceleration": 2.0,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "extend",
+      "waypointRelativePos": 0.0,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "extend"
+        }
+      }
+    },
+    {
+      "name": "intake",
+      "waypointRelativePos": 1.7717758271437491,
+      "endWaypointRelativePos": 3.413909520594126,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "intake"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.5,
+    "maxAcceleration": 3.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 148.011
+  },
+  "reversed": false,
+  "folder": "Worlds Paths 2",
+  "idealStartingState": {
+    "velocity": 0.0,
+    "rotation": 180.0
+  },
+  "useDefaultConstraints": false
+}

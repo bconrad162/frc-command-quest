@@ -1,4 +1,5 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
+import { lazyPage } from './lib/lazyPage.ts'
 import { createHashRouter, Outlet, RouterProvider, useRouteError } from 'react-router-dom'
 import { AppShell } from './components/AppShell.tsx'
 import { LinkButton, Spinner } from './components/ui.tsx'
@@ -8,12 +9,13 @@ import StartPage from './pages/StartPage.tsx'
 import WelcomePage from './pages/WelcomePage.tsx'
 
 // Heavier screens (code editor, simulator, teacher tools) load on demand.
-const ChallengePage = lazy(() => import('./pages/ChallengePage.tsx'))
-const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage.tsx'))
-const ReferencePage = lazy(() => import('./pages/ReferencePage.tsx'))
-const LabPage = lazy(() => import('./pages/LabPage.tsx'))
-const TeacherPage = lazy(() => import('./pages/TeacherPage.tsx'))
-const PresentPage = lazy(() => import('./pages/PresentPage.tsx'))
+const ChallengePage = lazyPage(() => import('./pages/ChallengePage.tsx'))
+const LeaderboardPage = lazyPage(() => import('./pages/LeaderboardPage.tsx'))
+const ReferencePage = lazyPage(() => import('./pages/ReferencePage.tsx'))
+const LabPage = lazyPage(() => import('./pages/LabPage.tsx'))
+const TeacherPage = lazyPage(() => import('./pages/TeacherPage.tsx'))
+const PresentPage = lazyPage(() => import('./pages/PresentPage.tsx'))
+const RobotLabPage = lazyPage(() => import('./pages/RobotLabPage.tsx'))
 
 function Loading() {
   return (
@@ -85,6 +87,7 @@ const router = createHashRouter([
       { path: '/leaderboard', element: <Lazy><LeaderboardPage /></Lazy> },
       { path: '/reference', element: <Lazy><ReferencePage /></Lazy> },
       { path: '/lab', element: <Lazy><LabPage /></Lazy> },
+      { path: '/robot-lab', element: <Lazy><RobotLabPage /></Lazy> },
       { path: '/teacher', element: <Lazy><TeacherPage /></Lazy> },
       { path: '*', element: <NotFound /> },
     ],

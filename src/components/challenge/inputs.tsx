@@ -1,11 +1,12 @@
 import { clsx } from 'clsx'
 import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
-import { lazy, Suspense, useState } from 'react'
+import { Suspense, useState } from 'react'
+import { lazyPage } from '../../lib/lazyPage.ts'
 import type { ChoiceChallenge, ReorderChallenge, TimelineCell, TimelineChallenge } from '../../game/types.ts'
 import { STATUS_STYLE } from '../scheduler/describe.ts'
 import { Spinner } from '../ui.tsx'
 
-const CodeView = lazy(() => import('../code/CodeView.tsx'))
+const CodeView = lazyPage(() => import('../code/CodeView.tsx'))
 
 export function PredictOutputInput({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) {
   return (

@@ -95,6 +95,21 @@ code**, not WPILib API. The UI labels them as such.
     code and models the flag explicitly. No graded challenge depends on the
     default.
 
+### Sequences
+
+Verified 2026-11-08 against allwpilib `main` @ `645e1f8`
+([`SequentialGroup.java`](https://github.com/wpilibsuite/allwpilib/blob/645e1f84a49b154066447a19c9cb7b1aee96806d/commandsv3/src/main/java/org/wpilib/command3/SequentialGroup.java)):
+
+- `Command.sequence(...)` builds a `SequentialGroup` whose body is
+  `for (command : commands) coroutine.await(command)`.
+- Its requirements are the **union of every child's requirements, owned for the
+  whole sequence**: "a mechanism owned by one command in the sequence, but not
+  by a later one, will be *uncommanded* while that later command executes."
+- Its priority is the highest priority of its children.
+
+The simulator models a sequence as a command that requires that union and
+`await`s each child in turn.
+
 ## Default commands
 
 - Queued during the scheduling phase for any mechanism with no running or
@@ -142,6 +157,44 @@ Verified on 2026-11-07 against allwpilib `main`:
 In the simulator, a button press is a scenario event at the start of a cycle
 (`schedule` for a rising-edge binding, `cancel` for `whileTrue`'s falling edge),
 with an optional `note` shown in the event log.
+
+## PathPlanner (Commands v3 community build)
+
+The official PathPlanner `2027` branch still uses Commands v2. The lab teaches the
+community v3 build: `JosephTLockwood/pathplanner`, branch
+`new-path-2027-commands-v3` @ `43f3aa9`, vendordep PathplannerLib
+`2027.0.0-alpha-7-commandsv3-2`, package `com.pathplanner.lib.command3`. It is
+alpha and may change. Verified 2026-11-08:
+
+- `AutoBuilder.configure(..., BooleanSupplier shouldFlipPath, Mechanism... driveRequirements)`.
+  `driveRequirements` is **varargs**, so leaving out the drivetrain compiles; every
+  path command it builds then requires nothing
+  ([`AutoBuilder.java`](https://github.com/JosephTLockwood/pathplanner/blob/43f3aa9f9bb628a64788c10d9e4d3e2cb6d2fb6a/pathplannerlib/src/main/java/com/pathplanner/lib/command3/AutoBuilder.java)).
+- `FollowPathCommand` requires exactly the mechanisms passed in. Its body forks
+  an events command, then follows the path and yields each loop until the path
+  is finished. The events command requires nothing; it forks each event-marker
+  command as its own child, so all event commands are canceled when the path ends.
+  The constructor **throws `IllegalArgumentException`** ("Events that are triggered
+  during path following cannot require the drive mechanism") if an event command
+  shares a requirement with the path
+  ([`FollowPathCommand.java`](https://github.com/JosephTLockwood/pathplanner/blob/43f3aa9f9bb628a64788c10d9e4d3e2cb6d2fb6a/pathplannerlib/src/main/java/com/pathplanner/lib/command3/FollowPathCommand.java),
+  [`EventScheduler.java`](https://github.com/JosephTLockwood/pathplanner/blob/43f3aa9f9bb628a64788c10d9e4d3e2cb6d2fb6a/pathplannerlib/src/main/java/com/pathplanner/lib/command3/EventScheduler.java)).
+- **Zoned event markers** (a marker with `endWaypointRelativePos`) schedule their
+  command at the zone start and **cancel it at the zone end**: the trajectory adds
+  a `CancelCommandEvent` at the marker's end position. One-shot markers run until
+  they finish or the path ends
+  ([`PathPlannerTrajectory.java` L110-116](https://github.com/JosephTLockwood/pathplanner/blob/43f3aa9f9bb628a64788c10d9e4d3e2cb6d2fb6a/pathplannerlib/src/main/java/com/pathplanner/lib/trajectory/PathPlannerTrajectory.java#L110-L116)).
+  The simulator models a zoned marker as a no-requirements wrapper that forks the
+  event command and finishes when the zone ends, which cancels it.
+- Autos build sequential parts with `Command.sequence(...)` (`CommandUtil.buildCommand`),
+  and `PathPlannerAuto.requirements()` returns its inner command's requirements,
+  so an auto owns the union of its paths' and named commands' requirements for
+  its whole run (see "Sequences").
+- `NamedCommands.getCommand(name)` returns the registered command itself (v3
+  commands can be reused in several compositions). If nothing is registered
+  under that name **when the auto is built**, it reports a warning and returns
+  a command named "None" that does nothing
+  ([`NamedCommands.java`](https://github.com/JosephTLockwood/pathplanner/blob/43f3aa9f9bb628a64788c10d9e4d3e2cb6d2fb6a/pathplannerlib/src/main/java/com/pathplanner/lib/command3/NamedCommands.java)).
 
 ## Not modeled by the simulator
 

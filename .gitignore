@@ -32,3 +32,7 @@ playwright-report
 supabase/.temp
 supabase/.branches
 dist-classroom
+
+# Brainstorm mockups, spike and plan workspaces; downloaded source assets
+.superpowers/
+.cache/
