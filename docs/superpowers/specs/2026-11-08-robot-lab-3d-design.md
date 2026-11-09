@@ -201,3 +201,67 @@ Verify all three against allwpilib `main` and the fork, and record them in `docs
 - The exact page layout at each screen size, within the constraints above.
 - The keyboard mapping.
 - Which candidate missions ship first in phase 3, once their behavior is verified.
+
+## Phase 2 details (added 2026-11-08)
+
+The user asked for "a joystick on the page they can use to control the robot and then a like vs code style on the page to make changes like fix the joystick issue, or add button to make it shoot using Commands V3". After phase 2 comes logging in the same lab (see "Next: logging").
+
+### What the user decided
+- An on-page joystick drives the robot live.
+- The code editor looks like VS Code: a file tab, line numbers and a Problems panel.
+- Students fix bugs (the joystick, the auto) and add new bindings, such as a button that shoots, all in Commands v3.
+- Order: the joystick and editor first, then logging.
+
+### Calls I made (the user can overrule these)
+- **The editor is a code-editor-style panel, not a copy of VS Code.**
+  - It has an explorer with `RobotContainer.java` and read-only mechanism files, so students can see what each command requires.
+  - It also has a file tab, breadcrumbs, line numbers, highlighted editable regions, a Problems panel and a status bar.
+  - It doesn't copy VS Code's icons or branding.
+- **`RobotContainer.java` has three editable regions:**
+  - the drive requirements passed to `AutoBuilder.configure(...)`;
+  - the drivetrain's default command;
+  - `configureBindings()`.
+  
+  The rest of the file is read-only.
+- **The lab understands a fixed set of line forms.** It still runs no Java.
+  - **Bindings:** `driver.<trigger>().<binding>(<command>);`
+    - Triggers are every `CommandXboxController` button trigger.
+    - Bindings are `onTrue`, `onFalse`, `whileTrue` and `toggleOnTrue`.
+    - Commands are the lab's command factories.
+  - **Default drive command:** `drivetrain.setDefaultCommand(drivetrain.teleopDrive(() -> <axis>, () -> <axis>, () -> <axis>));`. The three arguments are forward, strafe and turn, and each axis is `[-]driver.get(Left|Right)(X|Y)()`.
+  - **Anything else** shows in Problems as "the lab doesn't understand this line", with the line number.
+  - **2026 (v2) names** get a specific tip, for example "`povUp()` is the 2026 name; Commands v3 uses `dpadUp()`".
+- **Deploy.** Edits take effect when the student presses **Deploy**, which restarts the robot with the new code, as on a real robot. Problems block deploy, as compile errors would.
+- **Commands the lab offers**, using the team's real names where they exist:
+  - `intake.runIntakeCommand()` (requires intake);
+  - `pushout.pushCommand()` and `pushout.retractCommand()` (require pushout);
+  - `shooter.shootFuelCommand()` (requires shooter): spins up, then feeds every 8 loops while it runs and the hopper has fuel.
+- **Driving.**
+  - `teleopDrive` is field-relative from the blue driver station. Forward is +x.
+  - Speed is the team's `MAX_SPEED` (16.5 ft/s = 5.03 m/s), with turning at up to 2π rad/s.
+  - The `XboxController` 0.1 stick deadband applies.
+  - The robot stays inside the field walls. Hubs and other field elements are not obstacles yet.
+- **Shots leave the back of the robot along its heading, sized for the distance to the hub.** They score only when the robot's rear faces the hub. This replaces phase 1's "always aim at the hub" behavior.
+- **Driver Station bar:** Autonomous or Teleop, Enable and Disable. Autonomous runs auto #7 using the `AutoBuilder.configure` region. Phase 1's "forgot the drivetrain" toggle becomes a mission.
+- **Input:**
+  - the on-page controller: drag the sticks, and hold the buttons and triggers with the pointer;
+  - a real gamepad through the Gamepad API, using its standard mapping and mirrored on the page;
+  - the keyboard: WASD for the left stick, Q and E to turn, Space for RT, Shift for LT, and 1 to 4 for A, B, X and Y. The keyboard is ignored while typing in the editor.
+- **Triggers are polled at the start of each loop,** before default commands, using a new scheduler hook. Edge semantics match the "Controllers and trigger bindings" section.
+- **Missions in phase 2.** The robot runs a scripted input timeline with no browser, and the result is checked. Every mission starts from free play's correct code with one bug.
+  1. Fix the auto: no `drivetrain` in `AutoBuilder.configure`.
+  2. Forward drives backward: `driver.getLeftY()` without the minus.
+  3. The intake won't stop: `onTrue` instead of `whileTrue`.
+  4. Add a shoot button: there's no shoot binding. The student binds any button so the robot shoots while it's held.
+
+  After three failed checks, the lab shows the fix.
+- **Points and leaderboard.** Phase 2 missions are checked in the lab but not added to the points catalog. That needs a catalog migration and an Edge Function deploy, so it waits for phase 3, when there are more missions to add.
+
+### Next: logging (after phase 2)
+- Team 5829 uses AdvantageKit 26.0.2 (`LoggedRobot`, `WPILOGWriter` + `NT4Publisher`, replay mode).
+- It logs with `Logger.recordOutput` only: no `@AutoLog` inputs or IO layers, so replay can't reproduce a match.
+- Its keys are inconsistent (`Intake/AppliedVolts` vs `IntakeRightRPM`).
+- Some values exist only in `SmartDashboard`, and `DataLogManager` writes a second log.
+- The plan is for students to add `Logger.recordOutput(...)` in the lab editor and see the values in an AdvantageScope-style graph while they drive.
+- Missions would then cover the gaps above.
+- Before designing, check whether AdvantageKit supports the 2027 Commands v3. The lab must stay v3.

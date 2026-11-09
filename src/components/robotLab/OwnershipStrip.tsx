@@ -82,7 +82,7 @@ export function OwnershipStrip({
       <div>
         <h2 className="text-sm font-semibold text-ink-muted">Scheduler log</h2>
         <ol className="mt-2 grid gap-0.5 font-mono text-xs" data-testid="lab-log">
-          {recent.length === 0 && <li className="text-ink-faint">Press Run auto to enable autonomous.</li>}
+          {recent.length === 0 && <li className="text-ink-faint">Enable the robot to start the scheduler.</li>}
           {recent.map((e) => (
             <li key={e.seq} className={clsx('break-words sm:truncate', EVENT_TONE[e.type] ?? 'text-ink-muted')}>
               <span className="mr-2 text-ink-faint">{(e.cycle * 0.02).toFixed(2)}s</span>

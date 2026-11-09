@@ -15,8 +15,14 @@
  */
 import type { CommandDef, CoroutineStep, Scenario } from '../../simulation/types.ts'
 import { CYCLE_SECONDS, LOWEST_PRIORITY } from '../../simulation/types.ts'
+import type { LabConfig } from './labCode.ts'
+import { LAB_COMMANDS } from './labCode.ts'
 import type { Pose, Trajectory } from './pathplanner.ts'
 import { TEAM_PATHS } from './pathplanner.ts'
+
+/** 2026 REBUILT field size in meters (WPILib blue-origin frame). */
+export const FIELD_L = 16.541
+export const FIELD_W = 8.069
 
 export const LAB_MECHANISMS = ['drivetrain', 'pushout', 'intake', 'shooter'] as const
 export type LabMechanism = (typeof LAB_MECHANISMS)[number]
@@ -160,4 +166,41 @@ export function buildAutoScenario(setup: LabSetup): Scenario {
     events: [{ cycle: 1, action: 'schedule', command: AUTO_ID, note: 'Autonomous enabled' }],
     maxCycles: cycles(20),
   }
+}
+
+export type LabMode = 'auto' | 'teleop'
+/** Teleop starts in open field beside the blue hub, facing away from the driver station. */
+export const TELEOP_START_POSE: Pose = { x: 2.2, y: 2.4, theta: 0 }
+/** Teleop period length (2:15). */
+export const TELEOP_SECONDS = 135
+
+/** Mechanism commands the lab's bindings can run (also defined in auto, so bindings never reference a missing command). */
+function bindableCommands(): CommandDef[] {
+  return [
+    { id: LAB_COMMANDS.retract.id, name: LAB_COMMANDS.retract.name, requirements: ['pushout'], repeatedly: true, factory: LAB_COMMANDS.retract.java, body: [{ op: 'repeat', label: 'retract' }] },
+    {
+      id: LAB_COMMANDS.shootFuel.id,
+      name: LAB_COMMANDS.shootFuel.name,
+      requirements: ['shooter'],
+      factory: LAB_COMMANDS.shootFuel.java,
+      body: [
+        { op: 'work', label: 'spinUp', cycles: SPIN_UP_CYCLES },
+        { op: 'repeat', label: 'feed' },
+      ],
+    },
+  ]
+}
+
+/**
+ * The lab's scenario for the student's deployed code. Autonomous runs auto #7 with
+ * the config's AutoBuilder drive requirements; teleop has no scripted events (the
+ * trigger poller schedules commands). TeleopDrive is the drivetrain's default
+ * command only when the code sets one.
+ */
+export function buildLabScenario(config: LabConfig, mode: LabMode): Scenario {
+  const auto = buildAutoScenario({ passDrivetrain: config.passDrivetrain })
+  const commands = [...auto.commands.filter((c) => config.teleop || c.id !== TELEOP_ID), ...bindableCommands()]
+  const mechanisms = auto.mechanisms.map((m) => ({ ...m, defaultCommand: config.teleop ? m.defaultCommand : undefined }))
+  if (mode === 'auto') return { ...auto, mechanisms, commands }
+  return { mechanisms, commands, events: [], maxCycles: cycles(TELEOP_SECONDS) }
 }

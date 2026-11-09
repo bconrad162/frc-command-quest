@@ -101,7 +101,7 @@ export function AutonomousBuilder({
             {routine.map((s, i) => {
               const p = PALETTE_BY_ID[s.command]
               return (
-                <li key={`${i}-${s.op}-${s.command}`} className="flex items-center gap-2 rounded-lg border border-steel bg-pit-raised px-2 py-1.5" data-testid="routine-step">
+                <li key={`${i}-${s.op}-${s.command}`} className="flex flex-wrap items-center gap-2 rounded-lg border border-steel bg-pit-raised px-2 py-1.5" data-testid="routine-step">
                   <span className="w-5 text-right text-xs tabular-nums text-ink-faint">{i + 1}</span>
                   <div className="inline-flex overflow-hidden rounded border border-steel-bright text-xs" role="group" aria-label={`Step ${i + 1} mode`}>
                     {(['fork', 'await'] as const).map((op) => (
@@ -117,8 +117,8 @@ export function AutonomousBuilder({
                       </button>
                     ))}
                   </div>
-                  <span className="min-w-0 flex-1 truncate text-sm">{p.label}</span>
-                  <span className="flex gap-0.5">
+                  <span className="min-w-[8rem] flex-1 truncate text-sm">{p.label}</span>
+                  <span className="ml-auto flex shrink-0 gap-0.5">
                     <button type="button" className="rounded p-1 text-ink-muted hover:bg-steel disabled:opacity-30" disabled={disabled || i === 0} onClick={() => move(i, -1)} aria-label={`Move step ${i + 1} up`}>
                       <ArrowUp className="size-3.5" />
                     </button>

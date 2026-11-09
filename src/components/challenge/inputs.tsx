@@ -44,7 +44,7 @@ export function ChoiceInput({
 }) {
   const multiple = Boolean(challenge.multiple)
   return (
-    <fieldset className="grid gap-2" disabled={disabled}>
+    <fieldset className="grid grid-cols-[minmax(0,1fr)] gap-2" disabled={disabled}>
       <legend className="mb-2 text-sm text-ink-muted">{multiple ? 'Select every answer that applies.' : 'Choose one answer.'}</legend>
       {challenge.options.map((o) => {
         const checked = selected.includes(o.id)
@@ -112,7 +112,7 @@ export function ReorderInput({
   return (
     <div className="rounded-lg border border-steel bg-field-deep p-3 font-mono text-[13px]">
       <pre className="whitespace-pre-wrap text-ink-muted">{challenge.before}</pre>
-      <ol className="my-1.5 grid gap-1" aria-label="Reorderable lines. Use the arrow buttons to move a line.">
+      <ol className="my-1.5 grid grid-cols-[minmax(0,1fr)] gap-1" aria-label="Reorderable lines. Use the arrow buttons to move a line.">
         {items.map((item, i) => (
           <li
             key={item.id}
@@ -133,7 +133,7 @@ export function ReorderInput({
           >
             <GripVertical className="size-4 shrink-0 cursor-grab text-ink-faint" aria-hidden />
             <span className="w-5 shrink-0 text-right text-xs text-ink-faint tabular-nums">{i + 1}</span>
-            <code className="min-w-0 flex-1 whitespace-pre-wrap break-words text-ink">
+            <code className="min-w-0 flex-1 whitespace-pre-wrap [overflow-wrap:anywhere] text-ink">
               {pad}
               {item.code}
             </code>
