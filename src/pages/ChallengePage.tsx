@@ -1,6 +1,7 @@
 import { clsx } from 'clsx'
 import { ChevronRight, Eye, Lock, Play, RotateCcw, Target } from 'lucide-react'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { Suspense, useCallback, useMemo, useState } from 'react'
+import { lazyPage } from '../lib/lazyPage.ts'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { AutonomousBuilder, FieldView } from '../components/challenge/AutonomousBuilder.tsx'
 import { ControllerMapInput } from '../components/challenge/ControllerMapInput.tsx'
@@ -24,7 +25,7 @@ import { AUTO_COMMAND_ID, AutonomousWorld, buildAutonomousScenario, type Routine
 import type { CommandScheduler } from '../simulation/scheduler.ts'
 import { simulate } from '../simulation/scheduler.ts'
 
-const ConstrainedEditor = lazy(() => import('../components/code/ConstrainedEditor.tsx'))
+const ConstrainedEditor = lazyPage(() => import('../components/code/ConstrainedEditor.tsx'))
 
 const MODE_LABEL = {
   'java-lab': 'Java Debugging Lab',

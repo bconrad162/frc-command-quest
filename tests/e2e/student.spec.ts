@@ -199,3 +199,22 @@ test('keyboard users can reorder lines without drag and drop', async ({ page }) 
   await page.getByTestId('check-answer').click()
   await expect(page.getByTestId('feedback')).toContainText('Correct!')
 })
+
+test('a tab opened before a deploy reloads instead of showing an error', async ({ page }) => {
+  // The first load runs an "old build" whose Reference page file is gone (404),
+  // like a tab left open across a deploy. The reload gets the real build.
+  let loads = 0
+  await page.route(/\/assets\/index-[\w-]+\.js$/, async (route) => {
+    const response = await route.fetch()
+    let body = await response.text()
+    if (loads++ === 0) body = body.replace(/ReferencePage-[\w-]+\.js/g, 'ReferencePage-oldbuild.js')
+    await route.fulfill({ response, body, headers: { ...response.headers(), 'cache-control': 'no-store' } })
+  })
+  await page.route(/ReferencePage-oldbuild\.js$/, (route) => route.fulfill({ status: 404, body: 'Not found' }))
+  await page.goto('./')
+  await expect(page.getByRole('heading', { name: /COMMAND\s*QUEST/ })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Reference' }).click()
+  await expect(page.getByRole('heading', { name: 'Reference', exact: true })).toBeVisible()
+  await expect(page.getByText('Something went wrong')).toHaveCount(0)
+  expect(loads).toBe(2)
+})
