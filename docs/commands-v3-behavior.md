@@ -154,6 +154,30 @@ Verified on 2026-11-07 against allwpilib `main`:
   Javadoc (back is positive) that condition is *back*. The game follows the
   Javadoc.
 
+- First poll (`Trigger.poll()`, verified 2026-11-08 in the same `Trigger.java`):
+  the previous signal starts as `null`, so the first poll counts as an edge. If
+  the condition is high, rising-edge bindings fire; if it is low, falling-edge
+  bindings (`onFalse`, `whileFalse`) fire. `toggleOnTrue` cancels when the command
+  `isScheduledOrRunning`, otherwise schedules it. Other bindings exist beyond the
+  lab's four: `ifTrue`, `whileFalse`, `retryWhileTrue`, `retryWhileFalse`,
+  `toggleOnFalse`.
+
+**Robot Lab trigger polling.** The lab polls the student's bindings through the
+scheduler's `pollTriggers` hook, once per loop after scenario events and before
+default commands, with the same edge rules. A real robot polls from boot,
+while disabled; the lab only steps while enabled, so its first poll after
+Enable or Deploy records each trigger's state without firing anything (as if
+the robot had been sitting disabled). A button held through Enable therefore
+does not fire `onTrue` until it is released and pressed again.
+
+Disable cancels every running command that requires a mechanism: `Mechanism`
+commands are canceled "when the robot enters a disabled mode" unless the
+mechanism overrides `controllableDuringDisabled()` (default `false`;
+`Mechanism.java`). Enabling autonomous again starts the auto over, as
+`autonomousInit()` would schedule it again. One simplification: every binding
+to the same factory (say, `intake.runIntakeCommand()`) shares one command in the
+lab, while in Java each call creates its own command object.
+
 In the simulator, a button press is a scenario event at the start of a cycle
 (`schedule` for a rising-edge binding, `cancel` for `whileTrue`'s falling edge),
 with an optional `note` shown in the event log.

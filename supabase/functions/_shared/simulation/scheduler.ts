@@ -58,6 +58,11 @@ export interface SchedulerOptions {
   world?: WorldModel
   /** Record Mounted/Yielded events (very chatty; off by default for the UI log). */
   recordMountEvents?: boolean
+  /**
+   * Live trigger bindings: called once per cycle while triggers are polled (after
+   * scenario events, before default commands), like Trigger bindings in Scheduler.run().
+   */
+  pollTriggers?: (scheduler: CommandScheduler) => void
 }
 
 export class CommandScheduler {
@@ -65,6 +70,7 @@ export class CommandScheduler {
   private readonly commands: Map<CommandId, CommandDef>
   private readonly world?: WorldModel
   private readonly recordMountEvents: boolean
+  private readonly pollTriggers?: (scheduler: CommandScheduler) => void
 
   private cycleNumber = 0
   private nextRunId = 1
@@ -86,6 +92,7 @@ export class CommandScheduler {
     this.commands = new Map(scenario.commands.map((c) => [c.id, c]))
     this.world = options.world
     this.recordMountEvents = options.recordMountEvents ?? false
+    this.pollTriggers = options.pollTriggers
     this.reset()
   }
 
@@ -143,6 +150,7 @@ export class CommandScheduler {
       else if (event.action === 'cancel' && event.command) this.cancel(event.command)
       else if (event.action === 'setSignal' && event.signal) this.signals.set(event.signal, event.value ?? true)
     }
+    this.pollTriggers?.(this)
 
     // Phase 3.2: default commands for idle mechanisms.
     for (const mechanism of this.scenario.mechanisms) {

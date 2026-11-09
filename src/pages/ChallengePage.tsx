@@ -272,7 +272,7 @@ function ChallengeScreen({ challenge, practice }: { challenge: Challenge; practi
         </div>
 
         <Panel title="Your mission" className="min-w-0 content-start">
-          <div className="grid gap-4 px-4 py-4">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 px-4 py-4">
             <p className="text-[15px] text-ink">
               <RichText text={challenge.prompt} />
             </p>

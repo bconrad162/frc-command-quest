@@ -77,6 +77,10 @@
   }
   .inline-code {
     @apply font-mono text-[0.88em] px-1 py-px rounded bg-pit-raised text-signal;
+    /* Long calls like drivetrain.setDefaultCommand(...) wrap on phones instead of widening the page. */
+    overflow-wrap: anywhere;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
   .field-grid {
     background-image:

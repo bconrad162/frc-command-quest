@@ -21,7 +21,7 @@ type Shape =
   | { kind: 'rect'; x: number; y: number; w: number; h: number; rx: number }
 
 /** Where each control is drawn, and where its badge sits. */
-const LAYOUT: Record<ControlId, { shape: Shape; badge: [number, number] }> = {
+export const CONTROLLER_LAYOUT: Record<ControlId, { shape: Shape; badge: [number, number] }> = {
   leftTrigger: { shape: { kind: 'rect', x: 78, y: 6, w: 66, h: 24, rx: 8 }, badge: [62, 14] },
   rightTrigger: { shape: { kind: 'rect', x: 296, y: 6, w: 66, h: 24, rx: 8 }, badge: [378, 14] },
   leftBumper: { shape: { kind: 'rect', x: 66, y: 36, w: 92, h: 16, rx: 7 }, badge: [50, 44] },
@@ -41,8 +41,13 @@ const LAYOUT: Record<ControlId, { shape: Shape; badge: [number, number] }> = {
 }
 
 /** Button colors that match the printed letters on an Xbox-style pad. */
-const FACE_COLOR: Partial<Record<ControlId, string>> = { a: '#4ade80', b: '#f87171', x: '#60a5fa', y: '#facc15' }
+export const FACE_COLOR: Partial<Record<ControlId, string>> = { a: '#4ade80', b: '#f87171', x: '#60a5fa', y: '#facc15' }
 
+/** The controller's outline in the 440×250 viewBox. */
+export const CONTROLLER_BODY =
+  'M92 50 Q220 34 348 50 Q398 58 414 118 Q432 196 408 232 Q384 254 356 226 Q330 198 300 198 L140 198 Q110 198 84 226 Q56 254 32 232 Q8 196 26 118 Q42 58 92 50 Z'
+
+const LAYOUT = CONTROLLER_LAYOUT
 const ORDER = Object.keys(LAYOUT) as ControlId[]
 
 /**
@@ -65,7 +70,7 @@ export function ControllerDiagram({
   return (
     <svg viewBox="0 0 440 250" className={clsx('block h-auto w-full', className)} aria-hidden="true">
       <path
-        d="M92 50 Q220 34 348 50 Q398 58 414 118 Q432 196 408 232 Q384 254 356 226 Q330 198 300 198 L140 198 Q110 198 84 226 Q56 254 32 232 Q8 196 26 118 Q42 58 92 50 Z"
+        d={CONTROLLER_BODY}
         fill="var(--color-pit-raised)"
         stroke="var(--color-steel-bright)"
         strokeWidth="2"
